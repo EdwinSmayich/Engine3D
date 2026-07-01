@@ -34,7 +34,9 @@ add_subdirectory(ThirdParty/glm)
 # ---------------------------------------------------------------------------
 add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Shader.h
-        Engine3D/Shader.cpp)
+        Engine3D/Shader.cpp
+        Textures/stb_image.h
+        Textures/std_image.cpp)
 target_link_libraries(Engine3D PRIVATE glfw glad glm::glm)
 
 # Make Engine3D the startup project in generated Visual Studio solutions
@@ -47,3 +49,5 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT E
 # (For a portable/shippable build later, copy shaders next to the .exe instead.)
 # ---------------------------------------------------------------------------
 target_compile_definitions(Engine3D PRIVATE SHADER_DIR="${CMAKE_SOURCE_DIR}/Shaders")
+
+target_compile_definitions(Engine3D PRIVATE TEXTURE_DIR="${CMAKE_SOURCE_DIR}/Textures/Images")

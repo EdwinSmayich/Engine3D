@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "../../Textures/stb_image.h"
 #include "Shader.h"
 
 constexpr GLint WIDTH_SCREEN = 1000;
@@ -107,61 +108,71 @@ int main()
     // literals are concatenated at compile time into the full file path.
     Shader OurShaderProgram(SHADER_DIR "/3.3.Shader.vs", SHADER_DIR "/3.3.Shader.fs");
 
-    // --- Geometry (right-hand triangle) ---
-    GLfloat VerticesRight[] =
-    {
-        0.8f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        0.0f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.4f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+    // --- Texture lesson (texture triangle) ---
+    GLfloat Vertices[] = {
+        // positions          // colors           // texture coords
+        0.5f, 0.5f,   0.0f, 1.0f, 0.0f, 0.0f,  1.0f, 1.0f, // top right
+        0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 0.0f,  1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,  0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f,  0.0f, 1.0f, 1.0f, 0.0f,  0.0f, 1.0f // top left 
     };
 
-    GLuint RightVBO = 0;
-    GLuint RightVAO = 0;
-    glGenBuffers(1, &RightVBO);
-    glGenVertexArrays(1, &RightVAO);
+    GLuint Incides[] = {
+        0, 1, 3, // first triangle
+        1, 2, 3 // second triangle
+    };
 
-    glBindVertexArray(RightVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, RightVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VerticesRight), VerticesRight, GL_STATIC_DRAW);
+    GLuint TextureVBO = 0;
+    GLuint TextureVAO = 0;
+    GLuint TextureEBO = 0;
+    glGenBuffers(1, &TextureVBO);
+    glGenVertexArrays(1, &TextureVAO);
+    glGenBuffers(1, &TextureEBO);
+
+    glBindVertexArray(TextureVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, TextureVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, TextureEBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Incides), Incides, GL_STATIC_DRAW);
 
     // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), nullptr);
     glEnableVertexAttribArray(0);
 
     // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), reinterpret_cast<GLvoid*>(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    // Texture coord attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), reinterpret_cast<void*>(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
-    // --- Geometry (left-hand triangle) ---
-    GLfloat VerticesLeft[] =
+    // Texture attribute
+    GLuint Texture = 0;
+    glGenTextures(1, &Texture);
+    glBindTexture(GL_TEXTURE_2D, Texture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLint Width = 0;
+    GLint Height = 0;
+    GLint HrChannels = 0;
+    unsigned char* Data = stbi_load(TEXTURE_DIR "/Container.jpg", &Width, &Height, &HrChannels, 0);
+
+    if (Data)
     {
-        // positions        // colors
-        -0.8f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-        -0.4f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-    };
-
-    GLuint LeftVBO = 0;
-    GLuint LeftVAO = 0;
-    glGenBuffers(1, &LeftVBO);
-    glGenVertexArrays(1, &LeftVAO);
-
-    glBindVertexArray(LeftVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, LeftVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VerticesLeft), VerticesLeft, GL_STATIC_DRAW);
-    // Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), nullptr);
-    glEnableVertexAttribArray(0);
-
-    // Color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), reinterpret_cast<void*>(3 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, Data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cout << "Failed to load texture" << std::endl;
+    }
+    stbi_image_free(Data);
 
     // --- Render loop ---------------------------------------------------------
     while (!glfwWindowShouldClose(Window))
@@ -174,30 +185,27 @@ int main()
         glClearColor(0.10f, 0.15f, 0.20f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glBindTexture(GL_TEXTURE_2D, Texture);
+
         // One shader program for both triangles; the color comes from the vertices.
         OurShaderProgram.Use();
 
-        GLfloat OffsetX = 0.3f;
-        OurShaderProgram.SetFloat("OffsetX", OffsetX);
-        
-        // Right-hand triangle: bind its VAO and draw.
-        glBindVertexArray(RightVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // GLfloat OffsetX = 0.7f;
+        // OurShaderProgram.SetFloat("OffsetX", OffsetX);
 
-        // Left-hand triangle: same shader, its own VAO.
-        glBindVertexArray(LeftVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //OurShaderProgram.SetInt("OurTexture", 0);
+        glBindVertexArray(TextureVAO);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(Window);
         glfwPollEvents();
     }
 
     // --- Cleanup -------------------------------------------------------------
-    glDeleteBuffers(1, &RightVBO);
-    glDeleteVertexArrays(1, &RightVAO);
-
-    glDeleteBuffers(1, &LeftVBO);
-    glDeleteVertexArrays(1, &LeftVAO);
+    glDeleteBuffers(1, &TextureVBO);
+    glDeleteVertexArrays(1, &TextureVAO);
+    glDeleteBuffers(1, &TextureEBO);
+    glDeleteTextures(1, &Texture);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     glfwTerminate();
