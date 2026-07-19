@@ -6,23 +6,33 @@
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
 
+inline const void* BufferOffset(size_t InBytes)
+{
+    return reinterpret_cast<void*>(InBytes);
+}
+
 const GLchar* VertexSource = R"(
 #version 330 core
-layout (location = 0) 
-in vec3 aPos;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+
+out vec3 vertexColor;
+
 void main()
 {
-    gl_Position = vec4(aPos, 1.0f);    
+    gl_Position = vec4(aPos, 1.0f);
+    vertexColor = aColor;
 }
 )";
 
 const GLchar* FragmentSource = R"(
 #version 330 core
-layout (location = 0) 
+in vec3 vertexColor;
 out vec4 FragColor;
+
 void main()
 {
-    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+    FragColor = vec4(vertexColor, 1.0f);
 }
 )";
 
@@ -81,9 +91,9 @@ int main()
 
     float Vertices[] =
     {
-        0.0f, 0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5, -0.5f, 0.0f
+        0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+        -0.5, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
     };
     
     GLuint VAO = 0;
@@ -95,8 +105,11 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
     
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), static_cast<void*>(nullptr));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), BufferOffset(0));
     glEnableVertexAttribArray(0);
+    
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), BufferOffset(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
     
     GLuint VertexShader = CompileShader(GL_VERTEX_SHADER, VertexSource);
     GLuint FragmentShader = CompileShader(GL_FRAGMENT_SHADER, FragmentSource);
