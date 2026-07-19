@@ -3,16 +3,23 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
+#include <glm/glm.hpp>
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
+
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
 
-inline const void* BufferOffset(size_t InBytes)
+inline const GLvoid* BufferOffset(size_t InBytes)
 {
-    return reinterpret_cast<void*>(InBytes);
+    return reinterpret_cast<GLvoid*>(InBytes);
 }
 
 const GLchar* VertexSource = R"(
 #version 330 core
+uniform mat4 uMVP;
+
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 
@@ -20,7 +27,7 @@ out vec3 vertexColor;
 
 void main()
 {
-    gl_Position = vec4(aPos, 1.0f);
+    gl_Position = uMVP * vec4(aPos, 1.0f);
     vertexColor = aColor;
 }
 )";
@@ -89,11 +96,11 @@ int main()
         return -1;
     }
 
-    float Vertices[] =
+    GLfloat Vertices[] =
     {
         0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f
     };
     
     GLuint VAO = 0;
@@ -105,10 +112,10 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
     
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), BufferOffset(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
     
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), BufferOffset(3 * sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
     
     GLuint VertexShader = CompileShader(GL_VERTEX_SHADER, VertexSource);
@@ -119,20 +126,53 @@ int main()
     glAttachShader(Program, FragmentShader);
     glLinkProgram(Program);
     
+    GLint Success = 0;
+    glGetProgramiv(Program, GL_LINK_STATUS, &Success);
+    if (!Success)
+    {
+        std::cerr << "Program linking error\n";
+        glfwTerminate();
+        return -1;
+    }
+    
     glDeleteShader(VertexShader);
     glDeleteShader(FragmentShader);
-
+    
+    GLint MVPLocation = glGetUniformLocation(Program, "uMVP");
+    if (MVPLocation == -1)
+    {
+        std::cerr << "Error retrieving uniform location\n";   
+        glfwTerminate();
+        return -1;
+    }
+    
+    constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
+    
+    glm::mat4 View = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -2.0f));
+    glm::mat4 Projection = glm::perspective(glm::radians(90.0f), Aspect, 0.1f, 100.0f);
+    
+    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+    glUseProgram(Program);
+    
     while (!glfwWindowShouldClose(Window))
     {
         if (glfwGetKey(Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {
             glfwSetWindowShouldClose(Window, GLFW_TRUE);
         }
-
-        glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
+        
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glUseProgram(Program);
+        GLfloat Time = static_cast<float>(glfwGetTime());
+        float Angle = Time * (360.0f / 2.0f);
+        
+        glm::mat4 Model = glm::translate(glm::mat4(1.0f), glm::vec3(0.5f, 0.0f, 0.0f));
+        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.0f, 0.0f, 1.0f) );
+        
+        glm::mat4 MVP = Projection * View * Model;
+        
+        glUniformMatrix4fv(MVPLocation, 1, GL_FALSE, glm::value_ptr(MVP));
+        
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
