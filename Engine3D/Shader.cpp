@@ -1,5 +1,11 @@
 #include "Shader.h"
 
+#include "glm/gtc/type_ptr.hpp"
+
+#include <fstream>
+#include <iostream>
+#include <sstream>
+
 Shader::Shader(const GLchar* InVertexPath, const GLchar* InFragmentPath)
 {
     // 1. Retrieve the vertex/fragment source code from FilePath
@@ -39,14 +45,14 @@ Shader::Shader(const GLchar* InVertexPath, const GLchar* InFragmentPath)
 
     // 2. compile shaders
     // Vertex shader
-    GLuint Vertex;
+    GLuint Vertex = 0;
     Vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(Vertex, 1, &VertexShaderCode, nullptr);
     glCompileShader(Vertex);
     CheckCompileErrors(Vertex, "VERTEX");
 
     // Fragment shader
-    GLuint Fragment;
+    GLuint Fragment = 0;
     Fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(Fragment, 1, &FragmentShaderCode, nullptr);
     glCompileShader(Fragment);
@@ -91,6 +97,16 @@ void Shader::SetFloat(const std::string& InName, GLfloat InValue) const
     glUniform1f(glGetUniformLocation(ID, InName.c_str()), InValue);
 }
 
+void Shader::SetVec4(const std::string& InName, const glm::vec4& InValue) const
+{
+    glUniform4f(glGetUniformLocation(ID, InName.c_str()), InValue.x, InValue.y, InValue.z, InValue.w);
+}
+
+void Shader::SetMat4(const std::string& InName, const glm::mat4& InValue) const
+{
+    glUniformMatrix4fv(glGetUniformLocation(ID, InName.c_str()), 1, GL_FALSE, glm::value_ptr(InValue));
+}
+
 GLuint Shader::GetShaderProgram() const
 {
     return ID;
@@ -106,7 +122,8 @@ void Shader::CheckCompileErrors(GLuint InShader, const std::string& InType) cons
         if (!Success)
         {
             glGetShaderInfoLog(InShader, 1024, nullptr, InfoLog);
-            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << InType << "\n" << InfoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << InType << "\n"
+                      << InfoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
     }
     else
@@ -115,7 +132,8 @@ void Shader::CheckCompileErrors(GLuint InShader, const std::string& InType) cons
         if (!Success)
         {
             glGetProgramInfoLog(InShader, 1024, nullptr, InfoLog);
-            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << InType << "\n" << InfoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+            std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << InType << "\n"
+                      << InfoLog << "\n -- --------------------------------------------------- -- " << std::endl;
         }
     }
 }

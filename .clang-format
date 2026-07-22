@@ -1,0 +1,44 @@
+# clang-format configuration for Engine3D.
+# Tuned to match the existing hand-written style, not to impose a new one.
+---
+Language: Cpp
+BasedOnStyle: LLVM
+
+# --- Indentation -------------------------------------------------------------
+UseTab: Never              # always spaces, never tab characters
+IndentWidth: 4
+TabWidth: 4
+ContinuationIndentWidth: 4 # indent for wrapped lines
+AccessModifierOffset: -4   # public:/private: sit one level left
+NamespaceIndentation: All
+
+# --- Braces ------------------------------------------------------------------
+BreakBeforeBraces: Allman  # opening brace goes on its own line
+
+# --- Pointers and references -------------------------------------------------
+DerivePointerAlignment: false
+PointerAlignment: Left     # GLFWwindow* Window, unsigned char* Data
+
+# --- Line width --------------------------------------------------------------
+ColumnLimit: 150           # room for long glVertexAttribPointer() calls
+
+# --- Includes ----------------------------------------------------------------
+# IMPORTANT: do NOT reorder includes. GLAD must be included before GLFW,
+# so sorting would break the build. Keep the order exactly as written.
+SortIncludes: false
+IncludeBlocks: Preserve
+
+# --- Keep the code expanded, matching how it is written ----------------------
+AllowShortFunctionsOnASingleLine: Empty  # only empty {} bodies may collapse
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
+
+# --- Spacing and misc --------------------------------------------------------
+SpaceBeforeParens: ControlStatements  # if (...) yes, Foo(...) no
+Cpp11BracedListStyle: true
+IndentCaseLabels: true
+FixNamespaceComments: true
+AlignAfterOpenBracket: Align
+...
