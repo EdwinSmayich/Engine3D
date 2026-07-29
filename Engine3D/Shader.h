@@ -69,6 +69,14 @@ public:
     void SetFloat(const std::string& InName, GLfloat InValue) const;
 
     /**
+     * @brief Sets a vec3 value for a shader uniform.
+     *
+     * @param InName Name of the uniform variable.
+     * @param InValue Value to be assigned.
+     */
+    void SetVec3(const std::string& InName, const glm::vec3& InValue) const;
+
+    /**
      * @brief Sets a vec4 value for a shader uniform.
      *
      * @param InName Name of the uniform variable.

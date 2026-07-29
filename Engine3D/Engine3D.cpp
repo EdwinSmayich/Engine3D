@@ -11,10 +11,14 @@
 
 #include "../../Textures/stb_image.h"
 
+// Settings
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
 
 glm::mat4 Projection;
+
+// Stores how much we're seeing of either texture
+GLfloat MixValue = 0.2f;
 
 static void FrameBufferSizeCallback(GLFWwindow* InWindow, int InWidth, int InHeight)
 {
@@ -32,6 +36,26 @@ static void FrameBufferSizeCallback(GLFWwindow* InWindow, int InWidth, int InHei
 inline const GLvoid* BufferOffset(size_t InBytes)
 {
     return reinterpret_cast<GLvoid*>(InBytes);
+}
+
+// Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+void ProcessInput(GLFWwindow* InWindow)
+{
+    if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(InWindow, GLFW_TRUE);
+    }
+
+    if (glfwGetKey(InWindow, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        MixValue += 0.005f;
+        MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
+    }
+    else if (glfwGetKey(InWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        MixValue -= 0.005f;
+        MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
+    }
 }
 
 int main()
@@ -79,46 +103,46 @@ int main()
     GLfloat Vertices[] = {
         // clang-format off
         // Red facet
-        // Position           // Color            // UV
-        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
+        // Position           // Color            // UV         // Normal
+        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
   
         // Green facet 
-        // Position           // Color            // UV
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
+        // Position           // Color            // UV         // Normal
+        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, -1.0f,
          
         // Blue facet 
-        // Position           // Color             // UV
-        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,   0.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,   0.0f, 1.0f,
+        // Position           // Color             // UV        // Normal
+        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
         
         // Yellow facet  
-        // Position           // Color            // UV
-        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,   0.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,   1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,
+        // Position           // Color            // UV         // Normal
+        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,   1.0f, 1.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,   -1.0f, 0.0f, 0.0f,
         
         // Magenta facet  
-        // Position           // Color            // UV
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,   1.0f, 1.0f,
-        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,   1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,   0.0f, 0.0f,
+        // Position           // Color            // UV         // Normal
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,   1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,   1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
         
         // White facet  
-        // Position           // Color            // UV
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,   0.0f, 0.0f,
+        // Position           // Color            // UV         // Normal
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,   0.0f, -1.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   0.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, -1.0f, 0.0f,
         // clang-format on
     };
 
@@ -167,53 +191,82 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
     // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), BufferOffset(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
 
     // Color attribute (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
     // Texture coordinates attribute (location = 2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
+
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(8 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(3);
 
     // Unbind VAO
     glBindVertexArray(0);
 
     // Create texture object
-    GLuint Texture = 0;
-    glGenTextures(1, &Texture);
+    // Texture 1
+    GLuint Texture1 = 0;
+    glGenTextures(1, &Texture1);
 
-    // Activate texture unit 0 and bind texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, Texture);
+    // Activate textures unit and bind textures
+    glBindTexture(GL_TEXTURE_2D, Texture1);
 
     // Texture wrapping mode
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     // Texture filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    // Load texture from file
+    // Load textures from file
     GLint Width = 0;
     GLint Height = 0;
     GLint nrChannels = 0;
-    GLubyte* TextureData = stbi_load(TEXTURE_DIR "/Guy.jpg", &Width, &Height, &nrChannels, 0);
+    GLubyte* TextureData1 = stbi_load(TEXTURE_DIR "/Guy.jpg", &Width, &Height, &nrChannels, 0);
 
-    if (TextureData)
+    if (TextureData1)
     {
         // Upload texture to GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, TextureData);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, TextureData1);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
     {
         std::cerr << "Failed to load texture\n";
     }
-    stbi_image_free(TextureData);
+    stbi_image_free(TextureData1);
+
+    // Texture 2
+    GLuint Texture2 = 0;
+    glGenTextures(1, &Texture2);
+    glBindTexture(GL_TEXTURE_2D, Texture2);
+
+    // Texture wrapping mode
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    // Texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    GLubyte* TextureData2 = stbi_load(TEXTURE_DIR "/AwesomeFace.png", &Width, &Height, &nrChannels, 0);
+    if (TextureData2)
+    {
+        // Upload texture to GPU
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, TextureData2);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        std::cerr << "Failed to load texture\n";
+    }
+    stbi_image_free(TextureData2);
 
     // Create shader program
     Shader Shader(SHADER_DIR "/3.3.Shader.vs", SHADER_DIR "/3.3.Shader.fs");
@@ -226,10 +279,7 @@ int main()
 
     while (!glfwWindowShouldClose(Window))
     {
-        if (glfwGetKey(Window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        {
-            glfwSetWindowShouldClose(Window, GLFW_TRUE);
-        }
+        ProcessInput(Window);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -242,22 +292,23 @@ int main()
 
         // Build model matrix
         glm::mat4 Model = glm::translate(glm::mat4(1.0f), glm::vec3(X, Y, 0.0f));
-        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.5f, 1.0f, 0.0f));
+        Model = glm::rotate(Model, glm::radians(Angle), glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));
 
         // Final transformation matrix
         glm::mat4 MVP = Projection * View * Model;
 
         // Bind shader and update uniforms
         Shader.Use();
-        Shader.SetInt("uTexture", 0);
+        Shader.SetInt("uTexture1", 0);
+        Shader.SetInt("uTexture2", 1);
+        Shader.SetFloat("uMixValue", MixValue);
         Shader.SetMat4("uMVP", MVP);
 
-        GLfloat ColorValue = (glm::cos(Time) * 0.5f) + 0.5f;
-        Shader.SetVec4("OurColor", glm::vec4(glm::vec3(ColorValue), 1.0f));
-
-        // Bind texture and draw cube
+        // Bind textures and draw cube
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, Texture);
+        glBindTexture(GL_TEXTURE_2D, Texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, Texture2);
 
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
@@ -269,7 +320,8 @@ int main()
     glDeleteBuffers(1, &VBO);
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &EBO);
-    glDeleteTextures(1, &Texture);
+    glDeleteTextures(1, &Texture1);
+    glDeleteTextures(1, &Texture2);
 
     glfwTerminate();
     return 0;
