@@ -286,13 +286,10 @@ int main()
         GLfloat Time = static_cast<GLfloat>(glfwGetTime());
         GLfloat Angle = Time * (360.0f / 4.0f);
 
-        // Calculate object movement
-        GLfloat X = glm::cos(Time) * 2.0f;
-        GLfloat Y = glm::sin(Time) * 2.0f;
-
         // Build model matrix
-        glm::mat4 Model = glm::translate(glm::mat4(1.0f), glm::vec3(X, Y, 0.0f));
-        Model = glm::rotate(Model, glm::radians(Angle), glm::normalize(glm::vec3(1.0f, 1.0f, 0.0f)));
+        glm::mat4 Model(1.0f);
+        Model = glm::translate(Model, glm::vec3(3.0f, -3.0f, 0.0f));
+        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));
 
         // Final transformation matrix
         glm::mat4 MVP = Projection * View * Model;
@@ -311,6 +308,17 @@ int main()
         glBindTexture(GL_TEXTURE_2D, Texture2);
 
         glBindVertexArray(VAO);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+
+        Model = glm::mat4(1.0f);
+        Model = glm::translate(Model, glm::vec3(-3.0f, 3.0f, 0.0f));
+        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));
+        float ScaleAmount = (glm::sin(Time) * 0.5f) + 0.5f;
+        Model = glm::scale(Model, glm::vec3(ScaleAmount));
+
+        MVP = Projection * View * Model;
+
+        Shader.SetMat4("uMVP", MVP);
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
         glfwSwapBuffers(Window);
