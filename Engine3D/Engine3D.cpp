@@ -94,7 +94,7 @@ int main()
 
     glfwSetFramebufferSizeCallback(Window, FrameBufferSizeCallback);
 
-    int FbWidth = 0, FbHeight = 0;
+    GLint FbWidth = 0, FbHeight = 0;
     glfwGetFramebufferSize(Window, &FbWidth, &FbHeight);
     FrameBufferSizeCallback(Window, FbWidth, FbHeight);
 
@@ -173,6 +173,21 @@ int main()
         20,22,23
         // clang-format on
     };
+
+    // clang-format off
+    glm::vec3 CubePositions[] = {
+        glm::vec3( 0.0f,  0.0f,  0.0f), 
+        glm::vec3( 5.0f,  7.0f, -15.0f), 
+        glm::vec3(-4.5f, -4.2f, -2.5f),  
+        glm::vec3(-7.8f, -4.0f, -12.3f),  
+        glm::vec3( 5.4f, -2.4f, -3.5f),  
+        glm::vec3(-4.7f,  5.0f, -7.5f),  
+        glm::vec3( 2.3f, -4.0f, -2.5f),  
+        glm::vec3( 4.5f,  4.0f, -2.5f), 
+        glm::vec3( 4.5f,  1.2f, -1.5f), 
+        glm::vec3(-4.3f,  2.0f, -1.5f)  
+    };
+    // clang-format on
 
     // Vertex Array
     GLuint VAO = 0;
@@ -272,7 +287,13 @@ int main()
     Shader Shader(SHADER_DIR "/3.3.Shader.vs", SHADER_DIR "/3.3.Shader.fs");
 
     // Camera view matrix
-    glm::mat4 View = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+    glm::vec3 CameraPosition(0.0f, 0.0f, 3.0f);
+    glm::mat4 View = glm::translate(glm::mat4(1.0f), -CameraPosition);
+
+    // Bind shader and texture uniforms
+    Shader.Use();
+    Shader.SetInt("uTexture1", 0);
+    Shader.SetInt("uTexture2", 1);
 
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
@@ -284,22 +305,12 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         GLfloat Time = static_cast<GLfloat>(glfwGetTime());
-        GLfloat Angle = Time * (360.0f / 4.0f);
+        GLfloat Angle = Time * glm::radians(90.0f);
 
-        // Build model matrix
-        glm::mat4 Model(1.0f);
-        Model = glm::translate(Model, glm::vec3(3.0f, -3.0f, 0.0f));
-        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));
-
-        // Final transformation matrix
-        glm::mat4 MVP = Projection * View * Model;
-
-        // Bind shader and update uniforms
-        Shader.Use();
-        Shader.SetInt("uTexture1", 0);
-        Shader.SetInt("uTexture2", 1);
+        // Update uniforms
         Shader.SetFloat("uMixValue", MixValue);
-        Shader.SetMat4("uMVP", MVP);
+        Shader.SetMat4("uProjection", Projection);
+        Shader.SetMat4("uView", View);
 
         // Bind textures and draw cube
         glActiveTexture(GL_TEXTURE0);
@@ -308,18 +319,22 @@ int main()
         glBindTexture(GL_TEXTURE_2D, Texture2);
 
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 
-        Model = glm::mat4(1.0f);
-        Model = glm::translate(Model, glm::vec3(-3.0f, 3.0f, 0.0f));
-        Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));
-        float ScaleAmount = (glm::sin(Time) * 0.5f) + 0.5f;
-        Model = glm::scale(Model, glm::vec3(ScaleAmount));
+        // Build model matrix
+        for (int i = 0; i < 10; ++i)
+        {
+            glm::mat4 Model(1.0f);
+            Model = glm::translate(Model, CubePositions[i]);
+            if (i % 2 == 0)
+            {
+                Model = glm::rotate(Model, Angle, glm::vec3(0.0f, 1.0f, 0.0f));
+            }
+            const float ScaleAmount = (glm::cos(Time) * 0.5f) + 0.5f;
+            Model = glm::scale(Model, glm::vec3(ScaleAmount));
+            Shader.SetMat4("uModel", Model);
 
-        MVP = Projection * View * Model;
-
-        Shader.SetMat4("uMVP", MVP);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        }
 
         glfwSwapBuffers(Window);
         glfwPollEvents();
