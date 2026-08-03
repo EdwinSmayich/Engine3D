@@ -11,26 +11,86 @@
 
 #include "../../Textures/stb_image.h"
 
-// Settings
+// Screen settings
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
 
+// Camera settings
+GLboolean bFirstMouse = true;
+GLfloat LastX = static_cast<GLfloat>(WIDTH_SCREEN) * 0.5f;
+GLfloat LastY = static_cast<GLfloat>(HEIGHT_SCREEN) * 0.5f;
+GLfloat Pitch = 0.0f;
+GLfloat Yaw = -90.0f;
+glm::vec3 CameraPosition(0.0f, 0.0f, 5.0f);
+glm::vec3 CameraFront(0.0f, 0.0f, -1.0f);
+glm::vec3 CameraUp(0.0f, 1.0f, 0.0f);
+
+// MVP settings
 glm::mat4 Projection;
+GLfloat FOV = 90.0f;
 
 // Stores how much we're seeing of either texture
 GLfloat MixValue = 0.2f;
 
-static void FrameBufferSizeCallback(GLFWwindow* InWindow, int InWidth, int InHeight)
+static void FrameBufferSizeCallback(GLFWwindow*, int InWidth, int InHeight)
 {
     glViewport(0, 0, InWidth, InHeight);
+}
 
-    if (InHeight == 0)
+static void MouseCallBack(GLFWwindow*, GLdouble InPosX, GLdouble InPosY)
+{
+    if (bFirstMouse)
     {
-        InHeight = 1;
+        LastX = static_cast<float>(InPosX);
+        LastY = static_cast<float>(InPosY);
+        bFirstMouse = false;
     }
 
-    const GLfloat Aspect = static_cast<GLfloat>(InWidth) / static_cast<GLfloat>(InHeight);
-    Projection = glm::perspective(glm::radians(90.0f), Aspect, 0.1f, 100.0f);
+    GLfloat OffsetX = static_cast<float>(InPosX) - LastX;
+    GLfloat OffsetY = LastY - static_cast<float>(InPosY); // Reversed since y-coordinates range from bottom to top
+
+    LastX = static_cast<float>(InPosX);
+    LastY = static_cast<float>(InPosY);
+
+    constexpr GLfloat Sensitivity = 0.1f;
+    OffsetX *= Sensitivity;
+    OffsetY *= Sensitivity;
+
+    Yaw += OffsetX;
+    Pitch += OffsetY;
+
+    if (Pitch > 89.0f)
+    {
+        Pitch = 89.0f;
+    }
+    if (Pitch < -89.0f)
+    {
+        Pitch = -89.0f;
+    }
+
+    const GLfloat PitchRad = glm::radians(Pitch);
+    const GLfloat YawRad = glm::radians(Yaw);
+
+    glm::vec3 Direction;
+    Direction.x = glm::cos(YawRad) * glm::cos(PitchRad);
+    Direction.y = glm::sin(PitchRad);
+    Direction.z = glm::sin(YawRad) * glm::cos(PitchRad);
+
+    CameraFront = glm::normalize(Direction);
+}
+
+static void ScrollCallBack(GLFWwindow*, GLdouble, GLdouble InOffsetY)
+{
+    constexpr GLfloat Sensitivity = 10.0f;
+    FOV -= static_cast<float>(InOffsetY) * Sensitivity;
+    if (FOV < 1.0f)
+    {
+        FOV = 1.0f;
+    }
+    if (FOV > 90.0f)
+    {
+        FOV = 90.0f;
+    }
 }
 
 inline const GLvoid* BufferOffset(size_t InBytes)
@@ -39,7 +99,7 @@ inline const GLvoid* BufferOffset(size_t InBytes)
 }
 
 // Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-void ProcessInput(GLFWwindow* InWindow)
+void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime)
 {
     if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -48,13 +108,32 @@ void ProcessInput(GLFWwindow* InWindow)
 
     if (glfwGetKey(InWindow, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        MixValue += 0.005f;
+        MixValue += 2.0f * InDeltaTime;
         MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
     }
     else if (glfwGetKey(InWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        MixValue -= 0.005f;
+        MixValue -= 2.0f * InDeltaTime;
         MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
+    }
+
+    // Camera movement
+    const GLfloat CameraSpeed = 10.0f * InDeltaTime;
+    if (glfwGetKey(InWindow, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        CameraPosition += CameraFront * CameraSpeed;
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        CameraPosition -= CameraFront * CameraSpeed;
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        CameraPosition -= glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed;
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        CameraPosition += glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed;
     }
 }
 
@@ -93,12 +172,15 @@ int main()
     }
 
     glfwSetFramebufferSizeCallback(Window, FrameBufferSizeCallback);
+    glfwSetCursorPosCallback(Window, MouseCallBack);
+    glfwSetScrollCallback(Window, ScrollCallBack);
 
     GLint FbWidth = 0, FbHeight = 0;
     glfwGetFramebufferSize(Window, &FbWidth, &FbHeight);
     FrameBufferSizeCallback(Window, FbWidth, FbHeight);
 
     glEnable(GL_DEPTH_TEST);
+    glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     GLfloat Vertices[] = {
         // clang-format off
@@ -286,9 +368,7 @@ int main()
     // Create shader program
     Shader Shader(SHADER_DIR "/3.3.Shader.vs", SHADER_DIR "/3.3.Shader.fs");
 
-    // Camera view matrix
-    glm::vec3 CameraPosition(0.0f, 0.0f, 3.0f);
-    glm::mat4 View = glm::translate(glm::mat4(1.0f), -CameraPosition);
+    GLfloat LastFrame = 0.0f;
 
     // Bind shader and texture uniforms
     Shader.Use();
@@ -300,17 +380,16 @@ int main()
 
     while (!glfwWindowShouldClose(Window))
     {
-        ProcessInput(Window);
+        GLfloat CurrentFrame = static_cast<GLfloat>(glfwGetTime());
+        GLfloat DeltaTime = CurrentFrame - LastFrame;
+        LastFrame = CurrentFrame;
+
+        ProcessInput(Window, DeltaTime);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        GLfloat Time = static_cast<GLfloat>(glfwGetTime());
-        GLfloat Angle = Time * glm::radians(90.0f);
-
         // Update uniforms
         Shader.SetFloat("uMixValue", MixValue);
-        Shader.SetMat4("uProjection", Projection);
-        Shader.SetMat4("uView", View);
 
         // Bind textures and draw cube
         glActiveTexture(GL_TEXTURE0);
@@ -318,19 +397,24 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, Texture2);
 
-        glBindVertexArray(VAO);
+        // Camera view matrix
+        constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
+        Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
+        Shader.SetMat4("uProjection", Projection);
+
+        glm::mat4 View = glm::lookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
+        Shader.SetMat4("uView", View);
 
         // Build model matrix
+        glBindVertexArray(VAO);
         for (int i = 0; i < 10; ++i)
         {
             glm::mat4 Model(1.0f);
             Model = glm::translate(Model, CubePositions[i]);
-            if (i % 2 == 0)
-            {
-                Model = glm::rotate(Model, Angle, glm::vec3(0.0f, 1.0f, 0.0f));
-            }
-            const float ScaleAmount = (glm::cos(Time) * 0.5f) + 0.5f;
-            Model = glm::scale(Model, glm::vec3(ScaleAmount));
+
+            GLfloat Angle = CurrentFrame * glm::radians(360.0f);
+            Model = glm::rotate(Model, Angle, glm::vec3(0.0f, 1.0f, 0.0f));
+
             Shader.SetMat4("uModel", Model);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
