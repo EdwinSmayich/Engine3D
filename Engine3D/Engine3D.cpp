@@ -10,24 +10,20 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "../../Textures/stb_image.h"
+#include "Camera/Camera.h"
 
 // Screen settings
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
 
-// Camera settings
+// Camera
+Camera MainCamera(glm::vec3(0.0f, 0.0f, 5.0f));
 GLboolean bFirstMouse = true;
 GLfloat LastX = static_cast<GLfloat>(WIDTH_SCREEN) * 0.5f;
 GLfloat LastY = static_cast<GLfloat>(HEIGHT_SCREEN) * 0.5f;
-GLfloat Pitch = 0.0f;
-GLfloat Yaw = -90.0f;
-glm::vec3 CameraPosition(0.0f, 0.0f, 5.0f);
-glm::vec3 CameraFront(0.0f, 0.0f, -1.0f);
-glm::vec3 CameraUp(0.0f, 1.0f, 0.0f);
 
 // MVP settings
 glm::mat4 Projection;
-GLfloat FOV = 90.0f;
 
 // Stores how much we're seeing of either texture
 GLfloat MixValue = 0.2f;
@@ -52,45 +48,12 @@ static void MouseCallBack(GLFWwindow*, GLdouble InPosX, GLdouble InPosY)
     LastX = static_cast<float>(InPosX);
     LastY = static_cast<float>(InPosY);
 
-    constexpr GLfloat Sensitivity = 0.1f;
-    OffsetX *= Sensitivity;
-    OffsetY *= Sensitivity;
-
-    Yaw += OffsetX;
-    Pitch += OffsetY;
-
-    if (Pitch > 89.0f)
-    {
-        Pitch = 89.0f;
-    }
-    if (Pitch < -89.0f)
-    {
-        Pitch = -89.0f;
-    }
-
-    const GLfloat PitchRad = glm::radians(Pitch);
-    const GLfloat YawRad = glm::radians(Yaw);
-
-    glm::vec3 Direction;
-    Direction.x = glm::cos(YawRad) * glm::cos(PitchRad);
-    Direction.y = glm::sin(PitchRad);
-    Direction.z = glm::sin(YawRad) * glm::cos(PitchRad);
-
-    CameraFront = glm::normalize(Direction);
+    MainCamera.ProcessMouseMovement(OffsetX, OffsetY, GL_TRUE);
 }
 
 static void ScrollCallBack(GLFWwindow*, GLdouble, GLdouble InOffsetY)
 {
-    constexpr GLfloat Sensitivity = 10.0f;
-    FOV -= static_cast<float>(InOffsetY) * Sensitivity;
-    if (FOV < 1.0f)
-    {
-        FOV = 1.0f;
-    }
-    if (FOV > 90.0f)
-    {
-        FOV = 90.0f;
-    }
+    MainCamera.ProcessMouseScroll(InOffsetY);
 }
 
 inline const GLvoid* BufferOffset(size_t InBytes)
@@ -98,7 +61,8 @@ inline const GLvoid* BufferOffset(size_t InBytes)
     return reinterpret_cast<GLvoid*>(InBytes);
 }
 
-// Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+// Process all input: query GLFW whether relevant keys are pressed/released this frame and react
+// accordingly
 void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime)
 {
     if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -118,22 +82,21 @@ void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime)
     }
 
     // Camera movement
-    const GLfloat CameraSpeed = 10.0f * InDeltaTime;
     if (glfwGetKey(InWindow, GLFW_KEY_W) == GLFW_PRESS)
     {
-        CameraPosition += CameraFront * CameraSpeed;
+        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Forward, InDeltaTime);
     }
     if (glfwGetKey(InWindow, GLFW_KEY_S) == GLFW_PRESS)
     {
-        CameraPosition -= CameraFront * CameraSpeed;
-    }
-    if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        CameraPosition -= glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed;
+        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Backward, InDeltaTime);
     }
     if (glfwGetKey(InWindow, GLFW_KEY_D) == GLFW_PRESS)
     {
-        CameraPosition += glm::normalize(glm::cross(CameraFront, CameraUp)) * CameraSpeed;
+        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Right, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Left, InDeltaTime);
     }
 }
 
@@ -399,10 +362,11 @@ int main()
 
         // Camera view matrix
         constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
+        const GLfloat FOV = MainCamera.GetZoom();
         Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
         Shader.SetMat4("uProjection", Projection);
 
-        glm::mat4 View = glm::lookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
+        glm::mat4 View = MainCamera.GetViewMatrix();
         Shader.SetMat4("uView", View);
 
         // Build model matrix

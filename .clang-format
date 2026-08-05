@@ -20,7 +20,7 @@ DerivePointerAlignment: false
 PointerAlignment: Left     # GLFWwindow* Window, unsigned char* Data
 
 # --- Line width --------------------------------------------------------------
-ColumnLimit: 150           # room for long glVertexAttribPointer() calls
+ColumnLimit: 120           # room for long glVertexAttribPointer() calls
 
 # --- Includes ----------------------------------------------------------------
 # IMPORTANT: do NOT reorder includes. GLAD must be included before GLFW,
@@ -34,6 +34,7 @@ AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
+PackConstructorInitializers: Never
 
 # --- Spacing and misc --------------------------------------------------------
 SpaceBeforeParens: ControlStatements  # if (...) yes, Foo(...) no

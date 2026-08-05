@@ -36,7 +36,9 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Shader.h
         Engine3D/Shader.cpp
         Textures/stb_image.h
-        Textures/std_image.cpp)
+        Textures/std_image.cpp
+        Engine3D/Camera/Camera.h
+        Engine3D/Camera/Camera.cpp)
 target_link_libraries(Engine3D PRIVATE glfw glad glm::glm)
 
 # Make Engine3D the startup project in generated Visual Studio solutions
