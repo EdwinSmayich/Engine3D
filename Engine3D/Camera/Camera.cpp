@@ -1,5 +1,4 @@
 ﻿#include "Camera.h"
-
 #include "glm/ext/matrix_transform.hpp"
 
 Camera::Camera(const glm::vec3& InPos, const glm::vec3& InUp, GLfloat InPitch, GLfloat InYaw)
@@ -61,6 +60,16 @@ void Camera::ProcessKeyboard(CameraMovementType InDirection, GLfloat InDeltaTime
             Position -= Front * Velocity;
             break;
         }
+        case CameraMovementType::CMT_Up:
+        {
+            Position += Up * Velocity;
+            break;
+        }
+        case CameraMovementType::CMT_Down:
+        {
+            Position -= Up * Velocity;
+            break;
+        }
         case CameraMovementType::CMT_Right:
         {
             Position += Right * Velocity;
@@ -110,9 +119,36 @@ void Camera::ProcessMouseScroll(GLfloat InOffsetY)
     }
 }
 
-GLfloat Camera::GetZoom() const
+void Camera::SetPosition(const glm::vec3& NewPos)
 {
-    return Zoom;
+    Position = NewPos;
+}
+
+void Camera::SetSpeed(GLfloat NewSpeed)
+{
+    MovementSpeed = NewSpeed;
+}
+
+void Camera::SetSensitivity(GLfloat NewSens)
+{
+    MouseSensitivity = NewSens;
+}
+
+void Camera::SetFOV(GLfloat NewFOV)
+{
+    Zoom = NewFOV;
+}
+
+void Camera::SetPitch(GLfloat NewPitch)
+{
+    Pitch = NewPitch;
+    UpdateCameraVectors();
+}
+
+void Camera::SetYaw(GLfloat NewYaw)
+{
+    Yaw = NewYaw;
+    UpdateCameraVectors();
 }
 
 glm::mat4 Camera::GetViewMatrix() const

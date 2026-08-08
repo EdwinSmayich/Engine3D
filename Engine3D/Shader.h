@@ -1,10 +1,7 @@
 #pragma once
 #include "glm/fwd.hpp"
-
 #include <glad/gl.h>
-
 #include <string>
-#include "glm/vec4.hpp"
 
 /**
  * @brief Shader class for working with OpenGL shaders.

@@ -30,6 +30,34 @@ glad_add_library(glad STATIC REPRODUCIBLE API gl:core=3.3)
 add_subdirectory(ThirdParty/glm)
 
 # ---------------------------------------------------------------------------
+# IMGUI
+# ---------------------------------------------------------------------------
+set(IMGUI_SRC
+        ThirdParty/imgui/imgui.cpp
+        ThirdParty/imgui/imgui_draw.cpp
+        ThirdParty/imgui/imgui_tables.cpp
+        ThirdParty/imgui/imgui_widgets.cpp
+        ThirdParty/imgui/imgui_demo.cpp
+        ThirdParty/imgui/backends/imgui_impl_glfw.cpp
+        ThirdParty/imgui/backends/imgui_impl_opengl3.cpp
+        Engine3D/Core/AppContext.h
+)
+
+add_library(imgui STATIC
+        ${IMGUI_SRC}
+)
+
+target_include_directories(imgui PUBLIC
+        ThirdParty/imgui
+        ThirdParty/imgui/backends
+)
+
+target_link_libraries(imgui PUBLIC
+        glfw
+        glad
+)
+
+# ---------------------------------------------------------------------------
 # Engine executable
 # ---------------------------------------------------------------------------
 add_executable(Engine3D Engine3D/Engine3D.cpp
@@ -38,8 +66,16 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Textures/stb_image.h
         Textures/std_image.cpp
         Engine3D/Camera/Camera.h
-        Engine3D/Camera/Camera.cpp)
-target_link_libraries(Engine3D PRIVATE glfw glad glm::glm)
+        Engine3D/Camera/Camera.cpp
+        Engine3D/Core/DebugSettings.h
+        Engine3D/ImGui/ImGuiLayer.h
+        Engine3D/ImGui/ImGuiLayer.cpp)
+
+target_link_libraries(Engine3D PRIVATE
+        glfw
+        glad
+        glm::glm
+        imgui)
 
 # Make Engine3D the startup project in generated Visual Studio solutions
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine3D)

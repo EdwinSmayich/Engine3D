@@ -1,104 +1,31 @@
 // GLAD must be included BEFORE GLFW - it provides the OpenGL headers.
-#include <iostream>
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 #include <glm/glm.hpp>
-
-#include "Shader.h"
 #include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
 
-#include "../../Textures/stb_image.h"
+#include "ImGui/ImGuiLayer.h"
+#include <backends/imgui_impl_glfw.h>
+#include <backends/imgui_impl_opengl3.h>
+
+#include <iostream>
+#include "Shader.h"
 #include "Camera/Camera.h"
+#include "Core/AppContext.h"
+#include "Core/DebugSettings.h"
+
+static void FrameBufferSizeCallback(GLFWwindow*, int InWidth, int InHeight);
+static void MouseCallBack(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY);
+static void ScrollCallBack(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY);
+static void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext);
+
+inline const GLvoid* BufferOffset(size_t InBytes);
 
 // Screen settings
 constexpr GLint WIDTH_SCREEN = 1200;
 constexpr GLint HEIGHT_SCREEN = 1000;
-
-// Camera
-Camera MainCamera(glm::vec3(0.0f, 0.0f, 5.0f));
-GLboolean bFirstMouse = true;
-GLfloat LastX = static_cast<GLfloat>(WIDTH_SCREEN) * 0.5f;
-GLfloat LastY = static_cast<GLfloat>(HEIGHT_SCREEN) * 0.5f;
-
-// MVP settings
-glm::mat4 Projection;
-
-// Stores how much we're seeing of either texture
-GLfloat MixValue = 0.2f;
-
-static void FrameBufferSizeCallback(GLFWwindow*, int InWidth, int InHeight)
-{
-    glViewport(0, 0, InWidth, InHeight);
-}
-
-static void MouseCallBack(GLFWwindow*, GLdouble InPosX, GLdouble InPosY)
-{
-    if (bFirstMouse)
-    {
-        LastX = static_cast<float>(InPosX);
-        LastY = static_cast<float>(InPosY);
-        bFirstMouse = false;
-    }
-
-    GLfloat OffsetX = static_cast<float>(InPosX) - LastX;
-    GLfloat OffsetY = LastY - static_cast<float>(InPosY); // Reversed since y-coordinates range from bottom to top
-
-    LastX = static_cast<float>(InPosX);
-    LastY = static_cast<float>(InPosY);
-
-    MainCamera.ProcessMouseMovement(OffsetX, OffsetY, GL_TRUE);
-}
-
-static void ScrollCallBack(GLFWwindow*, GLdouble, GLdouble InOffsetY)
-{
-    MainCamera.ProcessMouseScroll(InOffsetY);
-}
-
-inline const GLvoid* BufferOffset(size_t InBytes)
-{
-    return reinterpret_cast<GLvoid*>(InBytes);
-}
-
-// Process all input: query GLFW whether relevant keys are pressed/released this frame and react
-// accordingly
-void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime)
-{
-    if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(InWindow, GLFW_TRUE);
-    }
-
-    if (glfwGetKey(InWindow, GLFW_KEY_UP) == GLFW_PRESS)
-    {
-        MixValue += 2.0f * InDeltaTime;
-        MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
-    }
-    else if (glfwGetKey(InWindow, GLFW_KEY_DOWN) == GLFW_PRESS)
-    {
-        MixValue -= 2.0f * InDeltaTime;
-        MixValue = glm::clamp(MixValue, 0.0f, 1.0f);
-    }
-
-    // Camera movement
-    if (glfwGetKey(InWindow, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Forward, InDeltaTime);
-    }
-    if (glfwGetKey(InWindow, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Backward, InDeltaTime);
-    }
-    if (glfwGetKey(InWindow, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Right, InDeltaTime);
-    }
-    if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        MainCamera.ProcessKeyboard(CameraMovementType::CMT_Left, InDeltaTime);
-    }
-}
+constexpr glm::vec2 CENTER_SCREEN = glm::vec2(WIDTH_SCREEN * 0.5f, HEIGHT_SCREEN * 0.5f);
 
 int main()
 {
@@ -123,6 +50,8 @@ int main()
     }
 
     glfwMakeContextCurrent(Window);
+    AppContext Context;
+    glfwSetWindowUserPointer(Window, &Context);
 
     GLint Version = gladLoadGL(glfwGetProcAddress);
     if (!Version)
@@ -138,61 +67,69 @@ int main()
     glfwSetCursorPosCallback(Window, MouseCallBack);
     glfwSetScrollCallback(Window, ScrollCallBack);
 
+    // Init ImGui
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(Window, GL_TRUE);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     GLint FbWidth = 0, FbHeight = 0;
     glfwGetFramebufferSize(Window, &FbWidth, &FbHeight);
     FrameBufferSizeCallback(Window, FbWidth, FbHeight);
 
     glEnable(GL_DEPTH_TEST);
-    glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
+    // Create shader program
+    Shader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
+    Shader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
+
+    // clang-format off
     GLfloat Vertices[] = {
-        // clang-format off
         // Red facet
-        // Position           // Color            // UV         // Normal
-        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+        // Position           // Color         
+        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,
   
         // Green facet 
-        // Position           // Color            // UV         // Normal
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 1.0f,   0.0f, 0.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   1.0f, 1.0f,   0.0f, 0.0f, -1.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
-        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f,   0.0f, 0.0f, -1.0f,
+        // Position           // Color         
+        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,
          
         // Blue facet 
-        // Position           // Color             // UV        // Normal
-        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f,   1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 1.0f,   1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,   0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        // Position           // Color         
+        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,
         
         // Yellow facet  
-        // Position           // Color            // UV         // Normal
-        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,   0.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,   1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,   1.0f, 1.0f,   -1.0f, 0.0f, 0.0f,
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f,   -1.0f, 0.0f, 0.0f,
+        // Position           // Color         
+        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,
         
         // Magenta facet  
-        // Position           // Color            // UV         // Normal
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,   1.0f, 1.0f,   0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,   1.0f, 0.0f,   0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,   0.0f, 0.0f,   0.0f, 1.0f, 0.0f,
+        // Position           // Color         
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,
         
         // White facet  
-        // Position           // Color            // UV         // Normal
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, 1.0f,   0.0f, -1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,   1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 0.0f,   0.0f, -1.0f, 0.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,   0.0f, 0.0f,   0.0f, -1.0f, 0.0f,
-        // clang-format on
+        // Position           // Color         
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,
     };
-
+    
     GLuint Indices[] = {
-        // clang-format off
         // Front
         0,1,2,
         0,2,3,
@@ -216,16 +153,14 @@ int main()
         // Bottom
         20,21,22,
         20,22,23
-        // clang-format on
     };
-
-    // clang-format off
+    
     glm::vec3 CubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 5.0f,  7.0f, -15.0f), 
+        glm::vec3( 0.0f,  0.0f,  -3.0f), 
+        glm::vec3( 5.4f, -2.4f, -5.5f),  
         glm::vec3(-4.5f, -4.2f, -2.5f),  
+        glm::vec3( 5.0f,  7.0f, -15.0f), 
         glm::vec3(-7.8f, -4.0f, -12.3f),  
-        glm::vec3( 5.4f, -2.4f, -3.5f),  
         glm::vec3(-4.7f,  5.0f, -7.5f),  
         glm::vec3( 2.3f, -4.0f, -2.5f),  
         glm::vec3( 4.5f,  4.0f, -2.5f), 
@@ -235,9 +170,9 @@ int main()
     // clang-format on
 
     // Vertex Array
-    GLuint VAO = 0;
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    GLuint CubesVAO = 0;
+    glGenVertexArrays(1, &CubesVAO);
+    glBindVertexArray(CubesVAO);
 
     // Vertex Buffer
     GLuint VBO = 0;
@@ -245,155 +180,242 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
 
-    GLuint EBO = 0;
-    glGenBuffers(1, &EBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    GLuint CubesEBO = 0;
+    glGenBuffers(1, &CubesEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubesEBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
     // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
 
     // Color attribute (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
 
-    // Texture coordinates attribute (location = 2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
+    // Lighting scene
+    GLuint LightVAO = 0;
+    glGenVertexArrays(1, &LightVAO);
+    glBindVertexArray(LightVAO);
 
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(8 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(3);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubesEBO);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(0));
+    glEnableVertexAttribArray(0);
 
     // Unbind VAO
     glBindVertexArray(0);
 
-    // Create texture object
-    // Texture 1
-    GLuint Texture1 = 0;
-    glGenTextures(1, &Texture1);
-
-    // Activate textures unit and bind textures
-    glBindTexture(GL_TEXTURE_2D, Texture1);
-
-    // Texture wrapping mode
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    // Texture filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    // Load textures from file
-    GLint Width = 0;
-    GLint Height = 0;
-    GLint nrChannels = 0;
-    GLubyte* TextureData1 = stbi_load(TEXTURE_DIR "/Guy.jpg", &Width, &Height, &nrChannels, 0);
-
-    if (TextureData1)
-    {
-        // Upload texture to GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGB, GL_UNSIGNED_BYTE, TextureData1);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cerr << "Failed to load texture\n";
-    }
-    stbi_image_free(TextureData1);
-
-    // Texture 2
-    GLuint Texture2 = 0;
-    glGenTextures(1, &Texture2);
-    glBindTexture(GL_TEXTURE_2D, Texture2);
-
-    // Texture wrapping mode
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    // Texture filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    GLubyte* TextureData2 = stbi_load(TEXTURE_DIR "/AwesomeFace.png", &Width, &Height, &nrChannels, 0);
-    if (TextureData2)
-    {
-        // Upload texture to GPU
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, Width, Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, TextureData2);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cerr << "Failed to load texture\n";
-    }
-    stbi_image_free(TextureData2);
-
-    // Create shader program
-    Shader Shader(SHADER_DIR "/3.3.Shader.vs", SHADER_DIR "/3.3.Shader.fs");
+    glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     GLfloat LastFrame = 0.0f;
 
-    // Bind shader and texture uniforms
-    Shader.Use();
-    Shader.SetInt("uTexture1", 0);
-    Shader.SetInt("uTexture2", 1);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glClearColor(0.1f, 0.2f, 0.3f, 1.0f);
-
     while (!glfwWindowShouldClose(Window))
     {
+        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(Window));
+
+        // Per-frame time logic
         GLfloat CurrentFrame = static_cast<GLfloat>(glfwGetTime());
         GLfloat DeltaTime = CurrentFrame - LastFrame;
         LastFrame = CurrentFrame;
 
-        ProcessInput(Window, DeltaTime);
+        // ImGui the interface
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
+        ImGuiLayer::BuildUI(Ctx->Settings, Ctx->MainCamera);
+
+        if (Ctx->Settings.bWireframe)
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
+        else
+        {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
+
+        // Input
+        ProcessInput(Window, DeltaTime, Context);
+
+        glClearColor(Ctx->Settings.BackgroundColor[0], Ctx->Settings.BackgroundColor[1], Ctx->Settings.BackgroundColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Update uniforms
-        Shader.SetFloat("uMixValue", MixValue);
+        CubeShader.Use();
+        CubeShader.SetVec3("uObjectColor", glm::vec3(1.0f, 0.5f, 0.31f));
+        CubeShader.SetVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.LightIntensity);
 
-        // Bind textures and draw cube
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, Texture1);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, Texture2);
+        // Projection
+        constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
+        const GLfloat FOV = Ctx->MainCamera.GetFOV();
+        glm::mat4 Projection;
+        Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
+        CubeShader.SetMat4("uProjection", Projection);
 
         // Camera view matrix
-        constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
-        const GLfloat FOV = MainCamera.GetZoom();
-        Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
-        Shader.SetMat4("uProjection", Projection);
+        glm::mat4 View = Ctx->MainCamera.GetViewMatrix();
+        CubeShader.SetMat4("uView", View);
 
-        glm::mat4 View = MainCamera.GetViewMatrix();
-        Shader.SetMat4("uView", View);
-
-        // Build model matrix
-        glBindVertexArray(VAO);
-        for (int i = 0; i < 10; ++i)
+        // Render cubes
+        glBindVertexArray(CubesVAO);
+        for (int i = 0; i < 2; ++i)
         {
             glm::mat4 Model(1.0f);
             Model = glm::translate(Model, CubePositions[i]);
-
-            GLfloat Angle = CurrentFrame * glm::radians(360.0f);
-            Model = glm::rotate(Model, Angle, glm::vec3(0.0f, 1.0f, 0.0f));
-
-            Shader.SetMat4("uModel", Model);
+            CubeShader.SetMat4("uModel", Model);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
         }
+
+        // Lighting cube
+        LightingCubeShader.Use();
+        if (Ctx->Settings.bAnimateLight)
+        {
+            Ctx->Settings.LightPosition.y = glm::sin(CurrentFrame) * 7.0f;
+            Ctx->Settings.LightPosition.z = -(glm::cos(CurrentFrame) * 0.5f + 0.5f) * 7.0f;
+        }
+        glm::mat4 LightCubeModel(1.0f);
+        LightCubeModel = glm::translate(LightCubeModel, glm::vec3(Ctx->Settings.LightPosition));
+        LightCubeModel = glm::scale(LightCubeModel, glm::vec3(0.2f));
+        LightingCubeShader.SetMat4("uProjection", Projection);
+        LightingCubeShader.SetMat4("uView", View);
+        LightingCubeShader.SetMat4("uModel", LightCubeModel);
+
+        // Draw the light cube
+        glBindVertexArray(LightVAO);
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+
+        // ImGui render
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
         glfwSwapBuffers(Window);
         glfwPollEvents();
     }
 
     glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteTextures(1, &Texture1);
-    glDeleteTextures(1, &Texture2);
+    glDeleteVertexArrays(1, &CubesVAO);
+    glDeleteBuffers(1, &CubesEBO);
+
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+
+    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;
+}
+
+static void FrameBufferSizeCallback(GLFWwindow*, int InWidth, int InHeight)
+{
+    glViewport(0, 0, InWidth, InHeight);
+}
+
+static void MouseCallBack(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY)
+{
+    auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+
+    if (Ctx->bCursorModeActive)
+    {
+        Ctx->bFirstMouse = true;
+        return;
+    }
+
+    if (Ctx->bFirstMouse)
+    {
+        Ctx->LastX = static_cast<float>(InPosX);
+        Ctx->LastY = static_cast<float>(InPosY);
+        Ctx->bFirstMouse = false;
+        return;
+    }
+
+    GLfloat OffsetX = static_cast<float>(InPosX) - Ctx->LastX;
+    GLfloat OffsetY = Ctx->LastY - static_cast<float>(InPosY); // Reversed since y-coordinates range from bottom to top
+
+    Ctx->LastX = static_cast<float>(InPosX);
+    Ctx->LastY = static_cast<float>(InPosY);
+
+    Ctx->MainCamera.ProcessMouseMovement(OffsetX, OffsetY, GL_TRUE);
+}
+
+static void ScrollCallBack(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY)
+{
+    if (ImGui::GetIO().WantCaptureMouse)
+    {
+        return;
+    }
+
+    auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+    Ctx->MainCamera.ProcessMouseScroll(static_cast<GLfloat>(InOffsetY));
+}
+
+// Process all input: query GLFW whether relevant keys are pressed/released this frame and react
+// accordingly
+static void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext)
+{
+    if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(InWindow, GLFW_TRUE);
+    }
+
+    // Place the cursor over the ImGui interface menu
+    static bool bTapPressedLastFrame = false;
+    bool bTapPressedNow = (glfwGetKey(InWindow, GLFW_KEY_LEFT_ALT) == GLFW_PRESS);
+
+    if (bTapPressedNow && !bTapPressedLastFrame)
+    {
+        InContext.bCursorModeActive = !InContext.bCursorModeActive;
+
+        if (InContext.bCursorModeActive)
+        {
+            glfwSetInputMode(InWindow, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            glfwSetCursorPos(InWindow, CENTER_SCREEN.x, CENTER_SCREEN.y);
+            InContext.bFirstMouse = true;
+        }
+        else
+        {
+            glfwSetInputMode(InWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            InContext.bFirstMouse = true;
+        }
+    }
+
+    bTapPressedLastFrame = bTapPressedNow;
+
+    if (InContext.bCursorModeActive)
+    {
+        return;
+    }
+
+    // Camera movement
+    if (glfwGetKey(InWindow, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Forward, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Backward, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Up, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Down, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Right, InDeltaTime);
+    }
+    if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Left, InDeltaTime);
+    }
+}
+
+inline const GLvoid* BufferOffset(size_t InBytes)
+{
+    return reinterpret_cast<GLvoid*>(InBytes);
 }
