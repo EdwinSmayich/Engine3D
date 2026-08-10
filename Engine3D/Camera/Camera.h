@@ -15,7 +15,7 @@ enum class CameraMovementType
 constexpr GLfloat YAW = -90.0f;
 constexpr GLfloat PITCH = 0.0f;
 constexpr GLfloat SPEED = 20.0f;
-constexpr GLfloat SENSITIVITY = 0.3f;
+constexpr GLfloat SENSITIVITY = 0.1f;
 constexpr GLfloat ZOOM = 45.0f;
 
 // clang-format off
@@ -44,6 +44,7 @@ public:
     void SetFOV(GLfloat NewFOV);
     void SetPitch(GLfloat NewPitch);
     void SetYaw(GLfloat NewYaw);
+    void ResetToDefaults();
 
     glm::vec3 GetPosition()    const { return Position; }
     GLfloat   GetSpeed()       const { return MovementSpeed; }

@@ -45,6 +45,11 @@ namespace
             {
                 InCamera.SetYaw(Yaw);
             }
+
+            if (ImGui::Button("Reset Camera", ImVec2(-1.0f, 0.0f)))
+            {
+                InCamera.ResetToDefaults();
+            }
         }
     }
 
@@ -53,6 +58,8 @@ namespace
         if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::Checkbox("Animate Light", &InSettings.bAnimateLight);
+
+            ImGui::ColorEdit3("Light Color", InSettings.LightColor);
 
             if (InSettings.bAnimateLight)
             {
@@ -66,7 +73,8 @@ namespace
                 ImGui::EndDisabled();
             }
 
-            ImGui::SliderFloat("Light Intensity", &InSettings.LightIntensity, 0.0f, 1.0f);
+            ImGui::SliderFloat("Light Ambient", &InSettings.LightAmbient, 0.0f, 1.0f);
+            ImGui::SliderFloat("Light Specular", &InSettings.LightSpecular, 0.0f, 1.0f);
         }
     }
 } // namespace
@@ -79,6 +87,8 @@ namespace ImGuiLayer
 
         ImGui::Text("FPS %.1f", ImGui::GetIO().Framerate);
 
+        ImGui::BeginChild("Settings Content", ImVec2(0, -25.0f));
+
         ImGui::Separator();
         ImGui::ColorEdit3("Background", InSettings.BackgroundColor);
 
@@ -90,6 +100,14 @@ namespace ImGuiLayer
 
         ImGui::Separator();
         LightingBuild(InSettings);
+
+        ImGui::EndChild();
+
+        // Reset settings to default values
+        if (ImGui::Button("Reset Defaults", ImVec2(-1.0f, 0.0f)))
+        {
+            InSettings = DebugSettings{};
+        }
 
         ImGui::End();
     }

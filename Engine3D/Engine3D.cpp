@@ -23,8 +23,8 @@ static void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& 
 inline const GLvoid* BufferOffset(size_t InBytes);
 
 // Screen settings
-constexpr GLint WIDTH_SCREEN = 1200;
-constexpr GLint HEIGHT_SCREEN = 1000;
+constexpr GLint WIDTH_SCREEN = 1920;
+constexpr GLint HEIGHT_SCREEN = 1200;
 constexpr glm::vec2 CENTER_SCREEN = glm::vec2(WIDTH_SCREEN * 0.5f, HEIGHT_SCREEN * 0.5f);
 
 int main()
@@ -87,46 +87,46 @@ int main()
     // clang-format off
     GLfloat Vertices[] = {
         // Red facet
-        // Position           // Color         
-        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,
+        // Position           // Color            // Normal
+        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,
   
         // Green facet 
-        // Position           // Color         
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,
+        // Position           // Color            // Normal
+        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
+        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,
          
         // Blue facet 
-        // Position           // Color         
-        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,
+        // Position           // Color            // Normal
+        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
+        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,
         
         // Yellow facet  
-        // Position           // Color         
-        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,
+        // Position           // Color            // Normal
+        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,
         
         // Magenta facet  
-        // Position           // Color         
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,
+        // Position           // Color            // Normal
+        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,
         
         // White facet  
-        // Position           // Color         
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,
+        // Position           // Color            // Normal
+        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
+        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
+        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,
     };
     
     GLuint Indices[] = {
@@ -156,8 +156,8 @@ int main()
     };
     
     glm::vec3 CubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  -3.0f), 
-        glm::vec3( 5.4f, -2.4f, -5.5f),  
+        glm::vec3( -5.0f,  0.0f,  -3.0f), 
+        glm::vec3( 5.0f, -2.4f, -5.5f),  
         glm::vec3(-4.5f, -4.2f, -2.5f),  
         glm::vec3( 5.0f,  7.0f, -15.0f), 
         glm::vec3(-7.8f, -4.0f, -12.3f),  
@@ -186,12 +186,16 @@ int main()
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
 
     // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
 
     // Color attribute (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
+
+    // Normal attribute (location = 2)
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(2);
 
     // Lighting scene
     GLuint LightVAO = 0;
@@ -201,7 +205,7 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubesEBO);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), BufferOffset(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
 
     // Unbind VAO
@@ -244,14 +248,16 @@ int main()
 
         CubeShader.Use();
         CubeShader.SetVec3("uObjectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-        CubeShader.SetVec3("uLightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.LightIntensity);
+        CubeShader.SetVec3("uLightPos", Ctx->Settings.LightPosition);
+        CubeShader.SetVec3("uLightColor", glm::vec3(Ctx->Settings.LightColor[0], Ctx->Settings.LightColor[1], Ctx->Settings.LightColor[2]));
+        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.LightAmbient);
+        CubeShader.SetFloat("uSpecularStrength", Ctx->Settings.LightSpecular);
 
         // Projection
         constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
         const GLfloat FOV = Ctx->MainCamera.GetFOV();
         glm::mat4 Projection;
-        Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 100.0f);
+        Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 200.0f);
         CubeShader.SetMat4("uProjection", Projection);
 
         // Camera view matrix
@@ -262,22 +268,29 @@ int main()
         glBindVertexArray(CubesVAO);
         for (int i = 0; i < 2; ++i)
         {
+            // Model
             glm::mat4 Model(1.0f);
             Model = glm::translate(Model, CubePositions[i]);
+            Model = glm::scale(Model, glm::vec3(2.0f, 0.8f, 5.4f));
             CubeShader.SetMat4("uModel", Model);
+
+            // Normal Matrix
+            glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(View * Model)));
+            CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
         }
 
         // Lighting cube
         LightingCubeShader.Use();
+        LightingCubeShader.SetVec3("uLightColor", glm::vec3(Ctx->Settings.LightColor[0], Ctx->Settings.LightColor[1], Ctx->Settings.LightColor[2]));
         if (Ctx->Settings.bAnimateLight)
         {
             Ctx->Settings.LightPosition.y = glm::sin(CurrentFrame) * 7.0f;
             Ctx->Settings.LightPosition.z = -(glm::cos(CurrentFrame) * 0.5f + 0.5f) * 7.0f;
         }
         glm::mat4 LightCubeModel(1.0f);
-        LightCubeModel = glm::translate(LightCubeModel, glm::vec3(Ctx->Settings.LightPosition));
+        LightCubeModel = glm::translate(LightCubeModel, Ctx->Settings.LightPosition);
         LightCubeModel = glm::scale(LightCubeModel, glm::vec3(0.2f));
         LightingCubeShader.SetMat4("uProjection", Projection);
         LightingCubeShader.SetMat4("uView", View);

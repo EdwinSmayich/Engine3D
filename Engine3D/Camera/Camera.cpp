@@ -151,6 +151,11 @@ void Camera::SetYaw(GLfloat NewYaw)
     UpdateCameraVectors();
 }
 
+void Camera::ResetToDefaults()
+{
+    *this = Camera{};
+}
+
 glm::mat4 Camera::GetViewMatrix() const
 {
     glm::mat4 Rotation(1.0f);
