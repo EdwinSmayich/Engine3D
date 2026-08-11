@@ -12,7 +12,7 @@ struct DebugSettings
 
     // Lighting
     bool bAnimateLight = false;
-    float LightAmbient = 0.5f;
+    float LightAmbient = 0.15f;
     float LightSpecular = 0.5f;
     glm::vec3 LightPosition = glm::vec3(-4.0f, 3.0f, -3.5f);
     float LightColor[3] = {1.0f, 1.0f, 1.0f};

@@ -17,7 +17,7 @@ namespace
             }
 
             float Speed = InCamera.GetSpeed();
-            if (ImGui::SliderFloat("Camera Speed", &Speed, 1.0f, 50.f))
+            if (ImGui::SliderFloat("Camera Speed", &Speed, 1.0f, 100.f))
             {
                 InCamera.SetSpeed(Speed);
             }
@@ -66,7 +66,7 @@ namespace
                 ImGui::BeginDisabled();
             }
 
-            ImGui::DragFloat3("Light Position", &InSettings.LightPosition.x, 0.1f, -50.0f, 50.0f);
+            ImGui::DragFloat3("Light Position", &InSettings.LightPosition.x, 0.1f);
 
             if (InSettings.bAnimateLight)
             {

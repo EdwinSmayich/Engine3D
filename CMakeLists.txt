@@ -41,6 +41,7 @@ set(IMGUI_SRC
         ThirdParty/imgui/backends/imgui_impl_glfw.cpp
         ThirdParty/imgui/backends/imgui_impl_opengl3.cpp
         Engine3D/Core/AppContext.h
+        Engine3D/Core/Materials.h
 )
 
 add_library(imgui STATIC

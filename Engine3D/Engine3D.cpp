@@ -154,19 +154,6 @@ int main()
         20,21,22,
         20,22,23
     };
-    
-    glm::vec3 CubePositions[] = {
-        glm::vec3( -5.0f,  0.0f,  -3.0f), 
-        glm::vec3( 5.0f, -2.4f, -5.5f),  
-        glm::vec3(-4.5f, -4.2f, -2.5f),  
-        glm::vec3( 5.0f,  7.0f, -15.0f), 
-        glm::vec3(-7.8f, -4.0f, -12.3f),  
-        glm::vec3(-4.7f,  5.0f, -7.5f),  
-        glm::vec3( 2.3f, -4.0f, -2.5f),  
-        glm::vec3( 4.5f,  4.0f, -2.5f), 
-        glm::vec3( 4.5f,  1.2f, -1.5f), 
-        glm::vec3(-4.3f,  2.0f, -1.5f)  
-    };
     // clang-format on
 
     // Vertex Array
@@ -189,13 +176,9 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(0));
     glEnableVertexAttribArray(0);
 
-    // Color attribute (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(3 * sizeof(GLfloat)));
+    // Normal attribute (location = 1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
     glEnableVertexAttribArray(1);
-
-    // Normal attribute (location = 2)
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(GLfloat), BufferOffset(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
 
     // Lighting scene
     GLuint LightVAO = 0;
@@ -247,35 +230,49 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         CubeShader.Use();
-        CubeShader.SetVec3("uObjectColor", glm::vec3(1.0f, 0.5f, 0.31f));
-        CubeShader.SetVec3("uLightPos", Ctx->Settings.LightPosition);
-        CubeShader.SetVec3("uLightColor", glm::vec3(Ctx->Settings.LightColor[0], Ctx->Settings.LightColor[1], Ctx->Settings.LightColor[2]));
-        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.LightAmbient);
-        CubeShader.SetFloat("uSpecularStrength", Ctx->Settings.LightSpecular);
+        // Light properties
+        CubeShader.SetVec3("uLight.Position", Ctx->Settings.LightPosition);
+        CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetPosition());
 
-        // Projection
+        CubeShader.SetVec3("uLight.LightColor", glm::vec3(Ctx->Settings.LightColor[0], Ctx->Settings.LightColor[1], Ctx->Settings.LightColor[2]));
+        CubeShader.SetVec3("uLight.Ambient", glm::vec3(1.0f, 1.0f, 1.0f));
+        CubeShader.SetVec3("uLight.Diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
+        CubeShader.SetVec3("uLight.Specular", glm::vec3(1.0f, 1.0f, 1.0f));
+        CubeShader.SetFloat("uLight.AmbientStrength", Ctx->Settings.LightAmbient);
+        CubeShader.SetFloat("uLight.SpecularStrength", Ctx->Settings.LightSpecular);
+
+        // Projection transformation
         constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
         const GLfloat FOV = Ctx->MainCamera.GetFOV();
         glm::mat4 Projection;
         Projection = glm::perspective(glm::radians(FOV), Aspect, 0.1f, 200.0f);
         CubeShader.SetMat4("uProjection", Projection);
 
-        // Camera view matrix
+        // View transformation
         glm::mat4 View = Ctx->MainCamera.GetViewMatrix();
         CubeShader.SetMat4("uView", View);
 
         // Render cubes
         glBindVertexArray(CubesVAO);
-        for (int i = 0; i < 2; ++i)
+        for (int i = 0; i < Ctx->Materials.GetMaterialsNames().size(); ++i)
         {
-            // Model
+            GLfloat OffsetX = 3.0f;
+
+            // Material properties
+            const Material& Material = Ctx->Materials.Get(Ctx->Materials.GetMaterialsNames()[i]);
+            CubeShader.SetVec3("uMaterial.Ambient", Material.Ambient);
+            CubeShader.SetVec3("uMaterial.Diffuse", Material.Diffuse);
+            CubeShader.SetVec3("uMaterial.Specular", Material.Specular);
+            CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
+
+            // World/Model transformation
             glm::mat4 Model(1.0f);
-            Model = glm::translate(Model, CubePositions[i]);
-            Model = glm::scale(Model, glm::vec3(2.0f, 0.8f, 5.4f));
+            Model = glm::translate(Model, glm::vec3(i * OffsetX, 0.0f, -3.0f));
+            Model = glm::scale(Model, glm::vec3(1.0f, 1.0f, 5.0f));
             CubeShader.SetMat4("uModel", Model);
 
             // Normal Matrix
-            glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(View * Model)));
+            glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
@@ -426,6 +423,12 @@ static void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& 
     {
         InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Left, InDeltaTime);
     }
+
+    // if (glfwGetKey(InWindow, GLFW_KEY_Q && GLFW_RAW_MOUSE_MOTION) == GLFW_PRESS)
+    // {
+    //     GLfloat DeltaSpeed = InContext.MainCamera.GetSpeed() * glfwRawMouseMotionSupported();
+    //     InContext.MainCamera.SetSpeed(DeltaSpeed);
+    // }
 }
 
 inline const GLvoid* BufferOffset(size_t InBytes)

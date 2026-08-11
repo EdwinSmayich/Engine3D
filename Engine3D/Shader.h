@@ -90,7 +90,7 @@ public:
      * @param InName Name of the uniform variable.
      * @param InValue Matrix to be assigned.
      */
-    void Shader::SetMat3(const std::string& InName, const glm::mat3& InValue) const;
+    void SetMat3(const std::string& InName, const glm::mat3& InValue) const;
 
     /**
      * @brief Sets a 4x4 matrix value for a shader uniform.

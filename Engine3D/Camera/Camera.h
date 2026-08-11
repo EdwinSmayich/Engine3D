@@ -14,7 +14,7 @@ enum class CameraMovementType
 
 constexpr GLfloat YAW = -90.0f;
 constexpr GLfloat PITCH = 0.0f;
-constexpr GLfloat SPEED = 20.0f;
+constexpr GLfloat SPEED = 40.0f;
 constexpr GLfloat SENSITIVITY = 0.1f;
 constexpr GLfloat ZOOM = 45.0f;
 
