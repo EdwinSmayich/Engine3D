@@ -40,8 +40,7 @@ set(IMGUI_SRC
         ThirdParty/imgui/imgui_demo.cpp
         ThirdParty/imgui/backends/imgui_impl_glfw.cpp
         ThirdParty/imgui/backends/imgui_impl_opengl3.cpp
-        Engine3D/Core/AppContext.h
-        Engine3D/Core/Materials.h
+        Engine3D/Core/Light.h
 )
 
 add_library(imgui STATIC
@@ -70,7 +69,10 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Camera/Camera.cpp
         Engine3D/Core/DebugSettings.h
         Engine3D/ImGui/ImGuiLayer.h
-        Engine3D/ImGui/ImGuiLayer.cpp)
+        Engine3D/ImGui/ImGuiLayer.cpp
+        Engine3D/Core/AppContext.h
+        Engine3D/Core/AppContext.cpp
+        Engine3D/Core/Materials.h)
 
 target_link_libraries(Engine3D PRIVATE
         glfw

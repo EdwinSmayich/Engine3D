@@ -1,8 +1,7 @@
 ﻿#include "ImGuiLayer.h"
 
 #include <imgui.h>
-#include "../Core/DebugSettings.h"
-#include "../Camera/Camera.h"
+#include "../Core/AppContext.h"
 
 namespace
 {
@@ -17,7 +16,7 @@ namespace
             }
 
             float Speed = InCamera.GetSpeed();
-            if (ImGui::SliderFloat("Camera Speed", &Speed, 1.0f, 100.f))
+            if (ImGui::SliderFloat("Camera Speed", &Speed, 0.5f, 100.f))
             {
                 InCamera.SetSpeed(Speed);
             }
@@ -53,35 +52,55 @@ namespace
         }
     }
 
-    void LightingBuild(DebugSettings& InSettings)
+    void LightsBuild(AppContext& InContext)
     {
-        if (ImGui::CollapsingHeader("Lighting", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::Checkbox("Animate Light", &InSettings.bAnimateLight);
-
-            ImGui::ColorEdit3("Light Color", InSettings.LightColor);
-
-            if (InSettings.bAnimateLight)
+            ImGui::BeginChild("Light Objects", ImVec2(0.0f, 100.0f), ImGuiChildFlags_Borders);
+            for (int i = 0; i < InContext.Lights.size(); ++i)
             {
-                ImGui::BeginDisabled();
+                const bool bSelected = (InContext.SelectedLight == i);
+
+                std::string Label = "Light " + std::to_string(i);
+                if (ImGui::Selectable(Label.c_str(), bSelected))
+                {
+                    InContext.SelectedLight = i;
+                }
             }
+            ImGui::EndChild();
 
-            ImGui::DragFloat3("Light Position", &InSettings.LightPosition.x, 0.1f);
-
-            if (InSettings.bAnimateLight)
-            {
-                ImGui::EndDisabled();
-            }
-
-            ImGui::SliderFloat("Light Ambient", &InSettings.LightAmbient, 0.0f, 1.0f);
-            ImGui::SliderFloat("Light Specular", &InSettings.LightSpecular, 0.0f, 1.0f);
+            // Properties of the Selected item
+            Light& Selectable = InContext.Lights[InContext.SelectedLight];
+            ImGui::ColorEdit3("Light Color", &Selectable.Color.x);
+            ImGui::DragFloat3("Light Position", &Selectable.Position.x, 0.1f);
         }
+
+        if (ImGui::Button("Add Light"))
+        {
+            float OffsetSpawnPos = InContext.Lights.size();
+
+            InContext.Lights.push_back({glm::vec3(OffsetSpawnPos, 0.0f, 0.0f), glm::vec3(1)});
+            InContext.SelectedLight = InContext.Lights.size() - 1; // Select a new one
+        }
+
+        ImGui::BeginDisabled(InContext.Lights.size() <= 1);
+        if (ImGui::Button("Remove Light"))
+        {
+            InContext.Lights.erase(InContext.Lights.begin() + InContext.SelectedLight);
+
+            if (InContext.SelectedLight >= InContext.Lights.size())
+            {
+                InContext.SelectedLight = InContext.Lights.size() - 1.0f;
+            }
+        }
+        ImGui::EndDisabled();
     }
+
 } // namespace
 
-namespace ImGuiLayer
+namespace FImGuiLayer
 {
-    void BuildUI(DebugSettings& InSettings, Camera& InCamera)
+    void BuildUI(AppContext& InContext)
     {
         ImGui::Begin("Settings");
 
@@ -90,25 +109,25 @@ namespace ImGuiLayer
         ImGui::BeginChild("Settings Content", ImVec2(0, -25.0f));
 
         ImGui::Separator();
-        ImGui::ColorEdit3("Background", InSettings.BackgroundColor);
+        ImGui::ColorEdit3("Background", InContext.Settings.BackgroundColor);
 
         ImGui::Separator();
-        ImGui::Checkbox("Wireframe", &InSettings.bWireframe);
+        ImGui::Checkbox("Wireframe", &InContext.Settings.bWireframe);
 
         ImGui::Separator();
-        CameraBuild(InCamera);
+        CameraBuild(InContext.MainCamera);
 
         ImGui::Separator();
-        LightingBuild(InSettings);
+        LightsBuild(InContext);
 
         ImGui::EndChild();
 
         // Reset settings to default values
         if (ImGui::Button("Reset Defaults", ImVec2(-1.0f, 0.0f)))
         {
-            InSettings = DebugSettings{};
+            InContext.Settings = DebugSettings{};
         }
 
         ImGui::End();
     }
-} // namespace ImGuiLayer
+} // namespace FImGuiLayer

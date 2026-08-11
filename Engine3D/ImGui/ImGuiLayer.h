@@ -1,10 +1,9 @@
 ﻿#pragma once
 
-struct DebugSettings;
-class Camera;
+struct AppContext;
 
-namespace ImGuiLayer
+namespace FImGuiLayer
 {
-    void BuildUI(DebugSettings& InSettings, Camera& InCamera);
+    void BuildUI(AppContext& InContext);
 
-} // namespace ImGuiLayer
+} // namespace FImGuiLayer
