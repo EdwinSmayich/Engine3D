@@ -5,4 +5,6 @@ struct Light
 {
     glm::vec3 Position;
     glm::vec3 Color;
+
+    bool bAnimateLight = false;
 };

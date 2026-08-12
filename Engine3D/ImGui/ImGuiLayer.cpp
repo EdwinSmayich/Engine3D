@@ -57,40 +57,68 @@ namespace
         if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::BeginChild("Light Objects", ImVec2(0.0f, 100.0f), ImGuiChildFlags_Borders);
-            for (int i = 0; i < InContext.Lights.size(); ++i)
-            {
-                const bool bSelected = (InContext.SelectedLight == i);
 
-                std::string Label = "Light " + std::to_string(i);
-                if (ImGui::Selectable(Label.c_str(), bSelected))
+            if (ImGui::BeginTable("LightsTable", 3, ImGuiTableFlags_BordersInnerH))
+            {
+                for (size_t i = 0; i < InContext.Lights.size(); ++i)
                 {
-                    InContext.SelectedLight = i;
+                    ImGui::TableNextColumn();
+
+                    const bool bSelected = (InContext.SelectedLight == i);
+
+                    std::string Label = "Light " + std::to_string(i);
+
+                    if (ImGui::Selectable(Label.c_str(), bSelected, 0, ImVec2(80.0f, 0.0f)))
+                    {
+                        InContext.SelectedLight = i;
+                    }
                 }
+
+                ImGui::EndTable();
             }
+
             ImGui::EndChild();
 
             // Properties of the Selected item
             Light& Selectable = InContext.Lights[InContext.SelectedLight];
             ImGui::ColorEdit3("Light Color", &Selectable.Color.x);
+
+            ImGui::Checkbox("Animate Light", &Selectable.bAnimateLight);
+            if (Selectable.bAnimateLight)
+            {
+                ImGui::BeginDisabled();
+            }
+
             ImGui::DragFloat3("Light Position", &Selectable.Position.x, 0.1f);
+
+            if (Selectable.bAnimateLight)
+            {
+                ImGui::EndDisabled();
+            }
         }
+
+        ImGui::SliderFloat("Light Ambient", &InContext.Settings.AmbientStrength, 0.0f, 1.0f);
+        ImGui::SliderFloat("Light Diffuse", &InContext.Settings.DiffuseStrength, 0.0f, 1.0f);
+        ImGui::SliderFloat("Light Specular", &InContext.Settings.SpecularStrength, 0.0f, 1.0f);
 
         if (ImGui::Button("Add Light"))
         {
-            float OffsetSpawnPos = InContext.Lights.size();
+            GLfloat OffsetSpawnPos = static_cast<GLfloat>(InContext.Lights.size());
 
             InContext.Lights.push_back({glm::vec3(OffsetSpawnPos, 0.0f, 0.0f), glm::vec3(1)});
-            InContext.SelectedLight = InContext.Lights.size() - 1; // Select a new one
+            InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1; // Select a new one
         }
+
+        ImGui::SameLine();
 
         ImGui::BeginDisabled(InContext.Lights.size() <= 1);
         if (ImGui::Button("Remove Light"))
         {
             InContext.Lights.erase(InContext.Lights.begin() + InContext.SelectedLight);
 
-            if (InContext.SelectedLight >= InContext.Lights.size())
+            if (InContext.SelectedLight >= static_cast<int>(InContext.Lights.size()))
             {
-                InContext.SelectedLight = InContext.Lights.size() - 1.0f;
+                InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1;
             }
         }
         ImGui::EndDisabled();

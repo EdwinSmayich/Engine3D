@@ -182,7 +182,7 @@ int main()
     glEnableVertexAttribArray(1);
 
     // Texture attribute (location = 2)
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(9 * sizeof(GLfloat)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), BufferOffset(9 * sizeof(GLfloat)));
     glEnableVertexAttribArray(2);
 
     // Create textures
@@ -237,18 +237,27 @@ int main()
         glClearColor(Ctx->Settings.BackgroundColor[0], Ctx->Settings.BackgroundColor[1], Ctx->Settings.BackgroundColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        CubeShader.Use();
         // Light properties
-        CubeShader.SetVec3("uLight.Position", Ctx->Lights[0].Position);
+        CubeShader.Use();
+        CubeShader.SetInt("uLightCount", Ctx->Lights.size());
+
+        for (size_t i = 0; i < Ctx->Lights.size(); ++i)
+        {
+            std::string Base = "uLights[" + std::to_string(i) + "]";
+            CubeShader.SetVec3(Base + ".Position", glm::vec3(Ctx->Lights[i].Position));
+            CubeShader.SetVec3(Base + ".Color", glm::vec3(Ctx->Lights[i].Color));
+        }
+
+        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.AmbientStrength);
+        CubeShader.SetFloat("uDiffuseStrength", Ctx->Settings.DiffuseStrength);
+        CubeShader.SetFloat("uSpecularStrength", Ctx->Settings.SpecularStrength);
         CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetPosition());
 
-        CubeShader.SetVec3("uLight.LightColor", glm::vec3(Ctx->Lights[0].Color));
-        CubeShader.SetVec3("uLight.Ambient", glm::vec3(1.0f, 1.0f, 1.0f));
-        CubeShader.SetVec3("uLight.Diffuse", glm::vec3(1.0f, 1.0f, 1.0f));
-        CubeShader.SetVec3("uLight.Specular", glm::vec3(1.0f, 1.0f, 1.0f));
-        CubeShader.SetFloat("uLight.AmbientStrength", Ctx->Settings.AmbientStrength);
-        CubeShader.SetFloat("uLight.DiffuseStrength", Ctx->Settings.DiffuseStrength);
-        CubeShader.SetFloat("uLight.SpecularStrength", Ctx->Settings.SpecularStrength);
+        // Material properties
+        const Material& Material = Ctx->Materials.Get("Emerald");
+        CubeShader.SetInt("uMaterial.Diffuse", 0);
+        CubeShader.SetInt("uMaterial.Specular", 1);
+        CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
 
         // Projection transformation
         constexpr GLfloat Aspect = static_cast<GLfloat>(WIDTH_SCREEN) / static_cast<GLfloat>(HEIGHT_SCREEN);
@@ -271,15 +280,9 @@ int main()
 
         // Render cubes
         glBindVertexArray(CubesVAO);
-        for (int i = 0; i < Ctx->Materials.GetMaterialsNames().size(); ++i)
+        for (size_t i = 0; i < NUM_CUBES; ++i)
         {
             constexpr GLfloat OffsetX = 3.0f;
-
-            // Material properties
-            const Material& Material = Ctx->Materials.Get("Emerald");
-            CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
-            CubeShader.SetInt("uMaterial.Diffuse", 0);
-            CubeShader.SetInt("uMaterial.Specular", 1);
 
             // World/Model transformation
             glm::mat4 Model(1.0f);
@@ -303,15 +306,16 @@ int main()
         glBindVertexArray(LightVAO);
 
         // Render light cubes
-        for (const Light& LightObj : Ctx->Lights)
+        for (Light& LightObj : Ctx->Lights)
         {
             LightingCubeShader.SetVec3("uLightColor", LightObj.Color);
 
-            // if (Ctx->Settings.bAnimateLight)
-            // {
-            //     LightObj.Position.y = glm::sin(CurrentFrame) * 7.0f;
-            //     LightObj.Position.z = -(glm::cos(CurrentFrame) * 0.5f + 0.5f) * 7.0f;
-            // }
+            if (LightObj.bAnimateLight)
+            {
+                LightObj.Position.y = glm::sin(CurrentFrame) * 7.0f;
+                LightObj.Position.z = -(glm::cos(CurrentFrame) * 0.5f + 0.5f) * 7.0f;
+            }
+
             glm::mat4 LightCubeModel(1.0f);
             LightCubeModel = glm::translate(LightCubeModel, LightObj.Position);
             LightCubeModel = glm::scale(LightCubeModel, glm::vec3(0.2f));

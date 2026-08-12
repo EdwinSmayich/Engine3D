@@ -3,6 +3,8 @@
 #include <vector>
 #include <string>
 
+constexpr int NUM_CUBES = 24;
+
 struct Material
 {
     glm::vec3 Ambient;
