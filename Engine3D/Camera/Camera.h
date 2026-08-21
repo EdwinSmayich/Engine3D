@@ -14,7 +14,7 @@ enum class CameraMovementType
 
 constexpr GLfloat YAW = -90.0f;
 constexpr GLfloat PITCH = 0.0f;
-constexpr GLfloat SPEED = 25.0f;
+constexpr GLfloat SPEED = 15.0f;
 constexpr GLfloat SENSITIVITY = 0.1f;
 constexpr GLfloat ZOOM = 45.0f;
 
@@ -49,9 +49,10 @@ public:
     glm::vec3 GetPosition()    const { return Position; }
     GLfloat   GetSpeed()       const { return MovementSpeed; }
     GLfloat   GetSensitivity() const { return MouseSensitivity; }
-    GLfloat   GetFOV()        const { return Zoom; }
+    GLfloat   GetFOV()         const { return Zoom; }
     GLfloat   GetPitch()       const { return Pitch; }
     GLfloat   GetYaw()         const { return Yaw; }
+    glm::vec3 GetFrontVector() const { return Front; }
     glm::mat4 GetViewMatrix()  const;
 
 private:

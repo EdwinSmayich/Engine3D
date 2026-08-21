@@ -95,12 +95,56 @@ namespace
             {
                 ImGui::EndDisabled();
             }
+
+            // Ambient
+            ImGui::Separator();
+            ImGui::SliderFloat("Ambient", &Selectable.Ambient.x, 0.0f, 1.0f);
+
+            // Type of Lighting
+            const char* LightTypeNames[] = {"Direction", "Point", "Spot"};
+
+            int CurrentType = static_cast<int>(Selectable.LightingType);
+            if (ImGui::Combo("Type", &CurrentType, LightTypeNames, IM_ARRAYSIZE(LightTypeNames)))
+            {
+                Selectable.LightingType = static_cast<LightType>(CurrentType);
+            }
+
+            switch (Selectable.LightingType)
+            {
+                case LightType::ELT_Directional:
+                {
+                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.001f, -1.0f, 1.0f);
+                    break;
+                }
+                case LightType::ELT_Point:
+                {
+                    ImGui::DragFloat("Linear", &Selectable.Linear, 0.001f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Quadratic", &Selectable.Quadratic, 0.0001f, 0.0f, 1.0f);
+                    break;
+                }
+                case LightType::ELT_Spot:
+                {
+                    static GLfloat InnerAngle;
+                    static GLfloat OuterAngle;
+
+                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.001f, -1.0f, 1.0f);
+                    ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 180.0f);
+                    ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 180.0f);
+
+                    if (OuterAngle <= InnerAngle)
+                    {
+                        OuterAngle = InnerAngle + 1.0f;
+                    }
+
+                    Selectable.InnerCutoff = glm::cos(glm::radians(InnerAngle));
+                    Selectable.OuterCutoff = glm::cos(glm::radians(OuterAngle));
+
+                    break;
+                }
+            }
         }
 
-        ImGui::SliderFloat("Light Ambient", &InContext.Settings.AmbientStrength, 0.0f, 1.0f);
-        ImGui::SliderFloat("Light Diffuse", &InContext.Settings.DiffuseStrength, 0.0f, 1.0f);
-        ImGui::SliderFloat("Light Specular", &InContext.Settings.SpecularStrength, 0.0f, 1.0f);
-
+        ImGui::Separator();
         if (ImGui::Button("Add Light"))
         {
             GLfloat OffsetSpawnPos = static_cast<GLfloat>(InContext.Lights.size());
@@ -153,7 +197,7 @@ namespace FImGuiLayer
         // Reset settings to default values
         if (ImGui::Button("Reset Defaults", ImVec2(-1.0f, 0.0f)))
         {
-            InContext.Settings = DebugSettings{};
+            InContext.ResetAppContextToDefaults();
         }
 
         ImGui::End();

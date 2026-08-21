@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-constexpr int NUM_CUBES = 24;
+constexpr int NUM_CUBES = 10;
 
 struct Material
 {
