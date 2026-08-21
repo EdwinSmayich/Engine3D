@@ -256,21 +256,24 @@ int main()
 
         // Render light cubes
         glBindVertexArray(LightVAO);
-        for (Light& LightObj : Ctx->Lights)
+        for (size_t i = 0; i < Ctx->Lights.size(); ++i)
         {
-            LightingCubeShader.SetVec3("uLightColor", LightObj.Color);
+            Light& L = Ctx->Lights[i]; // TODO: mb set conts here
+            bool bSelected = (i == Ctx->SelectedLight);
 
-            if (LightObj.bAnimateLight)
+            GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger
+            LightingCubeShader.SetVec3("uLightColor", bSelected ? glm::vec3(1.0f) : L.Color);
+
+            if (L.bAnimateLight)
             {
                 GLfloat Speed = 3.0f;
-                LightObj.Position.y = glm::sin(CurrentFrame * Speed) * 7.0f;
-                LightObj.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
+                L.Position.y = glm::sin(CurrentFrame * Speed) * 7.0f;
+                L.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
             }
 
             glm::mat4 LightModelMatrix(1.0f);
-            LightModelMatrix = glm::translate(LightModelMatrix, LightObj.Position);
-
-            LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(0.2f));
+            LightModelMatrix = glm::translate(LightModelMatrix, L.Position);
+            LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
             // Draw light cubes

@@ -127,7 +127,10 @@ namespace FCallBack
         double MouseX, MouseY;
         glfwGetCursorPos(InWindow, &MouseX, &MouseY);
 
-        glm::vec3 Ray = FUI::ScreenToWorldRay(MouseX, MouseY, WIDTH_SCREEN, HEIGHT_SCREEN, Ctx->Projection, Ctx->View);
+        int Width, Height;
+        glfwGetWindowSize(InWindow, &Width, &Height);
+
+        glm::vec3 Ray = FUI::ScreenToWorldRay(MouseX, MouseY, Width, Height, Ctx->Projection, Ctx->View);
         glm::vec3 O = Ctx->MainCamera.GetPosition();
         int Hit = -1;
         float Nearest = std::numeric_limits<float>::max();
