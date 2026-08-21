@@ -78,7 +78,7 @@ namespace FCallBack
         glViewport(0, 0, InWidth, InHeight);
     }
 
-    void MouseCallBack(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY)
+    void MouseCursorPosCallback(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY)
     {
         auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
 
@@ -105,7 +105,50 @@ namespace FCallBack
         Ctx->MainCamera.ProcessMouseMovement(OffsetX, OffsetY, GL_TRUE);
     }
 
-    void ScrollCallBack(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY)
+    void MouseButtonCallback(GLFWwindow* InWindow, GLint InButton, GLint InAction, GLint /*Mods*/)
+    {
+        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+
+        if (!Ctx->bCursorModeActive)
+        {
+            return;
+        }
+
+        if (InButton != GLFW_MOUSE_BUTTON_LEFT || InAction != GLFW_PRESS)
+        {
+            return;
+        }
+
+        if (ImGui::GetIO().WantCaptureMouse)
+        {
+            return;
+        }
+
+        double MouseX, MouseY;
+        glfwGetCursorPos(InWindow, &MouseX, &MouseY);
+
+        glm::vec3 Ray = FUI::ScreenToWorldRay(MouseX, MouseY, WIDTH_SCREEN, HEIGHT_SCREEN, Ctx->Projection, Ctx->View);
+        glm::vec3 O = Ctx->MainCamera.GetPosition();
+        int Hit = -1;
+        float Nearest = std::numeric_limits<float>::max();
+
+        for (int i = 0; i < static_cast<int>(Ctx->Lights.size()); ++i)
+        {
+            float T;
+            if (FPhysics::RayHitsSphere(O, Ray, Ctx->Lights[i].Position, 0.4f, T) && T < Nearest)
+            {
+                Nearest = T; // This hit is closer than the previous ones
+                Hit = i;
+            }
+        }
+
+        if (Hit != -1)
+        {
+            Ctx->SelectedLight = Hit; // chose the lamp that the beam hit
+        }
+    }
+
+    void ScrollCallback(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY)
     {
         if (ImGui::GetIO().WantCaptureMouse)
         {
@@ -181,3 +224,42 @@ namespace FCallBack
     }
 
 } // namespace FCallBack
+
+namespace FUI
+{
+    glm::vec3 ScreenToWorldRay(GLdouble InMouseX, GLdouble InMouseY, GLint InWidth, GLint InHeight, const glm::mat4& InProj, const glm::mat4& InView)
+    {
+        GLfloat X = (2.0f * static_cast<GLfloat>(InMouseX)) / static_cast<GLfloat>(InWidth) - 1.0f;
+        GLfloat Y = 1.0f - (2.0f * static_cast<GLfloat>(InMouseY)) / static_cast<GLfloat>(InHeight);
+
+        glm::vec4 RayClip = glm::vec4(X, Y, -1.0f, 1.0f);
+        glm::vec4 RayView = glm::inverse(InProj) * RayClip;
+
+        RayView = glm::vec4(RayView.x, RayView.y, -1.0f, 0.0f);
+        glm::vec3 RayWorld = glm::normalize(glm::vec3(glm::inverse(InView) * RayView));
+
+        return RayWorld;
+    }
+} // namespace FUI
+
+namespace FPhysics
+{
+    // clang-format off
+    bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT)
+    {
+        glm::vec3 OC = InC - InO;                       // from the camera to the center of the sphere
+        float Tca = glm::dot(OC, InD);              // projection of OC onto the ray (where the closest approach occurs)
+        if (Tca < 0.0f)
+            return false;                               // sphere BEHIND the ray — misses
+
+        float D2 = glm::dot(OC, OC) - Tca * Tca;    // square of the distance from the center to the ray line
+        float R2 = InR * InR;
+        if (D2 > R2)
+            return false;                               // the ray passes BY the sphere
+
+        float Thc = glm::sqrt(R2 - D2);              // half of the chord inside the sphere
+        OutT = Tca - Thc;                               // distance to the NEAREST entry point
+        return true;
+    }
+    // clang-format on
+} // namespace FPhysics

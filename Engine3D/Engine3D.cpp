@@ -50,8 +50,9 @@ int main()
     }
 
     glfwSetFramebufferSizeCallback(Window, FCallBack::FrameBufferSizeCallback);
-    glfwSetCursorPosCallback(Window, FCallBack::MouseCallBack);
-    glfwSetScrollCallback(Window, FCallBack::ScrollCallBack);
+    glfwSetCursorPosCallback(Window, FCallBack::MouseCursorPosCallback);
+    glfwSetMouseButtonCallback(Window, FCallBack::MouseButtonCallback);
+    glfwSetScrollCallback(Window, FCallBack::ScrollCallback);
 
     // Init ImGui
     IMGUI_CHECKVERSION();
@@ -243,6 +244,9 @@ int main()
 
         // View transformation
         glm::mat4 View = Ctx->MainCamera.GetViewMatrix();
+
+        Ctx->Projection = Projection;
+        Ctx->View = View;
 
         // Lighting cube
         // ===================================================================================================

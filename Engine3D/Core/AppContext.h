@@ -13,6 +13,9 @@ constexpr glm::vec2 CENTER_SCREEN = glm::vec2(WIDTH_SCREEN * 0.5f, HEIGHT_SCREEN
 
 struct AppContext
 {
+    glm::mat4 Projection;
+    glm::mat4 View;
+
     // ImGui Entities
     DebugSettings Settings;
 
@@ -49,7 +52,25 @@ namespace FCallBack
 {
     const GLvoid* BufferOffset(size_t InBytes);
     void FrameBufferSizeCallback(GLFWwindow*, GLint InWidth, GLint InHeight);
-    void MouseCallBack(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY);
-    void ScrollCallBack(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY);
+    void MouseCursorPosCallback(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY);
+    void MouseButtonCallback(GLFWwindow* InWindow, GLint InButton, GLint InAction, GLint /*Mods*/);
+    void ScrollCallback(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY);
     void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext);
 } // namespace FCallBack
+
+namespace FUI
+{
+    glm::vec3 ScreenToWorldRay(GLdouble InMouseX, GLdouble InMouseY, GLint InWidth, GLint InHeight, const glm::mat4& InProj, const glm::mat4& InView);
+} // namespace FUI
+
+namespace FPhysics
+{
+    /*
+     * OC — The vector from the camera to the center of the sphere.
+     * Tca — The distance along the ray from the point closest to the center. Negative → sphere behind → misses.
+     * D2 - is the square of the perpendicular distance from the center of the sphere to the ray.
+     * If R² is greater, the ray passed on the outside → it missed.
+     * Thc — the half-length of the ray segment inside the sphere; Tca − Thc = the distance to the point where the ray enters the sphere.
+     */
+    bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT);
+} // namespace FPhysics
