@@ -38,7 +38,8 @@ struct AppContext
         // {glm::vec3(0.0f, 5.0f, -8.0f), glm::vec3(0.3f, 0.4f, 1.0f)},  // Bluish
     };
 
-    int SelectedLight = 0; // Which light we are editing right now
+    int SelectedLight = 0;       // Which light we are editing right now
+    bool bDraggingLight = false; // Status: "I'm draging it right now"
 
     void ResetAppContextToDefaults();
 };
@@ -73,4 +74,5 @@ namespace FPhysics
      * Thc — the half-length of the ray segment inside the sphere; Tca − Thc = the distance to the point where the ray enters the sphere.
      */
     bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT);
+    bool RayHitsPlane(glm::vec3 InO, glm::vec3 InD, glm::vec3 InPlanePoint, glm::vec3 InPlaneNormal, glm::vec3& OutHit);
 } // namespace FPhysics

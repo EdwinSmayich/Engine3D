@@ -29,5 +29,5 @@ struct Light
 
     bool bAnimateLight = false;
 
-    LightType LightingType = LightType::ELT_Directional;
+    LightType LightingType = LightType::ELT_Spot;
 };

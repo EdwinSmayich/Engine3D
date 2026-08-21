@@ -124,8 +124,8 @@ namespace
                 }
                 case LightType::ELT_Spot:
                 {
-                    static GLfloat InnerAngle;
-                    static GLfloat OuterAngle;
+                    static GLfloat InnerAngle = Selectable.InnerCutoff;
+                    static GLfloat OuterAngle = Selectable.OuterCutoff;
 
                     ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.001f, -1.0f, 1.0f);
                     ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 180.0f);
@@ -149,7 +149,7 @@ namespace
         {
             GLfloat OffsetSpawnPos = static_cast<GLfloat>(InContext.Lights.size());
 
-            InContext.Lights.push_back({glm::vec3(OffsetSpawnPos, 0.0f, 0.0f), glm::vec3(1)});
+            InContext.Lights.push_back({glm::vec3(OffsetSpawnPos, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)});
             InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1; // Select a new one
         }
 
