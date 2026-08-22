@@ -5,13 +5,16 @@
 #include <glm/glm.hpp>
 #include "glm/gtc/matrix_transform.hpp"
 
+#include <imgui.h>
 #include "ImGui/ImGuiLayer.h"
+#include "ImGuizmo.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 
 #include <iostream>
 #include "Shader.h"
 #include "Core/AppContext.h"
+#include "glm/gtc/type_ptr.inl"
 
 int main()
 {
@@ -219,6 +222,7 @@ int main()
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
+        ImGuizmo::BeginFrame();
         FImGuiLayer::BuildUI(*Ctx);
 
         if (Ctx->Settings.bWireframe)
@@ -342,6 +346,22 @@ int main()
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
             glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        }
+
+        // ImGuizmo render
+        if (!Ctx->Lights.empty())
+        {
+            ImGuiIO& IO = ImGui::GetIO();
+            ImGuizmo::SetOrthographic(false);
+            ImGuizmo::SetRect(0.0f, 0.0f, IO.DisplaySize.x, IO.DisplaySize.y);
+
+            glm::mat4 GizmoModel = glm::translate(glm::mat4(1.0f), Ctx->Lights[Ctx->SelectedLight].Position);
+            ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(GizmoModel));
+
+            if (ImGuizmo::IsUsing())
+            {
+                Ctx->Lights[Ctx->SelectedLight].Position = glm::vec3(GizmoModel[3]);
+            }
         }
 
         // ImGui render

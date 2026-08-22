@@ -24,8 +24,8 @@ struct Light
     float Linear = 0.045f;
     float Quadratic = 0.0075f;
 
-    float InnerCutoff = glm::cos(glm::radians(12.0f));
-    float OuterCutoff = glm::cos(glm::radians(18.0f));
+    float InnerCutoff = glm::cos(glm::radians(12.0f)); // in degrees
+    float OuterCutoff = glm::cos(glm::radians(18.0f)); // in degrees
 
     bool bAnimateLight = false;
 

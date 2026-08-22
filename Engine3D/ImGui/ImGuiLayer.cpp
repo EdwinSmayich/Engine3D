@@ -124,20 +124,18 @@ namespace
                 }
                 case LightType::ELT_Spot:
                 {
-                    static GLfloat InnerAngle = Selectable.InnerCutoff;
-                    static GLfloat OuterAngle = Selectable.OuterCutoff;
+                    GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.InnerCutoff));
+                    GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.OuterCutoff));
 
-                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.001f, -1.0f, 1.0f);
-                    ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 180.0f);
-                    ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 180.0f);
-
-                    if (OuterAngle <= InnerAngle)
+                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.01f, -1.0f, 1.0f);
+                    if (ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 90.0f))
                     {
-                        OuterAngle = InnerAngle + 1.0f;
+                        Selectable.InnerCutoff = glm::cos(glm::radians(glm::min(InnerAngle, OuterAngle)));
                     }
-
-                    Selectable.InnerCutoff = glm::cos(glm::radians(InnerAngle));
-                    Selectable.OuterCutoff = glm::cos(glm::radians(OuterAngle));
+                    if (ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 90.0f))
+                    {
+                        Selectable.OuterCutoff = glm::cos(glm::radians(glm::max(OuterAngle, InnerAngle)));
+                    }
 
                     break;
                 }
@@ -147,9 +145,8 @@ namespace
         ImGui::Separator();
         if (ImGui::Button("Add Light"))
         {
-            GLfloat OffsetSpawnPos = static_cast<GLfloat>(InContext.Lights.size());
-
-            InContext.Lights.push_back({glm::vec3(OffsetSpawnPos, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f)});
+            glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
+            InContext.Lights.push_back({SpawnPos, glm::vec3(0.0f, 0.0f, -1.0f)});
             InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1; // Select a new one
         }
 

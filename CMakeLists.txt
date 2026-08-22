@@ -38,9 +38,9 @@ set(IMGUI_SRC
         ThirdParty/imgui/imgui_tables.cpp
         ThirdParty/imgui/imgui_widgets.cpp
         ThirdParty/imgui/imgui_demo.cpp
+        ThirdParty/imgui/ImGuizmo.cpp
         ThirdParty/imgui/backends/imgui_impl_glfw.cpp
         ThirdParty/imgui/backends/imgui_impl_opengl3.cpp
-        Engine3D/Core/Light.h
 )
 
 add_library(imgui STATIC
@@ -70,6 +70,7 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Core/DebugSettings.h
         Engine3D/ImGui/ImGuiLayer.h
         Engine3D/ImGui/ImGuiLayer.cpp
+        Engine3D/Core/Light.h
         Engine3D/Core/AppContext.h
         Engine3D/Core/AppContext.cpp
         Engine3D/Core/Materials.h)

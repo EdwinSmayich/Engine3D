@@ -2,6 +2,8 @@
 #include <iostream>
 #include "../../Textures/stb_image.h"
 
+#include <imgui.h>
+#include <ImGuizmo.h>
 #include <imgui_internal.h>
 
 void AppContext::ResetAppContextToDefaults()
@@ -126,28 +128,25 @@ namespace FCallBack
     {
         auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
 
+        // clang-forma off
         if (!Ctx->bCursorModeActive)
-        {
             return;
-        }
+        if (ImGuizmo::IsOver())
+            return;
         if (InButton != GLFW_MOUSE_BUTTON_LEFT)
-        {
             return;
-        }
+
         if (InAction == GLFW_RELEASE)
         {
             Ctx->bDraggingLight = false;
             return;
         }
-        if (InAction != GLFW_PRESS)
-        {
-            return;
-        }
 
-        if (ImGui::GetIO().WantCaptureMouse)
-        {
+        if (InAction != GLFW_PRESS)
             return;
-        }
+        if (ImGui::GetIO().WantCaptureMouse)
+            return;
+        // clang-forma on
 
         double MouseX, MouseY;
         glfwGetCursorPos(InWindow, &MouseX, &MouseY);
