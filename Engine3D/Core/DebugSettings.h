@@ -7,4 +7,7 @@ struct DebugSettings
 
     // Background
     float BackgroundColor[3] = {0.1f, 0.1f, 0.1f};
+
+    // Lighting
+    float AmbientStrength = 0.15f;
 };

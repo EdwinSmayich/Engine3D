@@ -83,6 +83,7 @@ namespace
             // Properties of the Selected item
             FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
             ImGui::DragFloat3("Position", &Selectable.Transform.Position.x, 0.1f);
+            ImGui::DragFloat3("RotationEuler", &Selectable.Transform.RotationEuler.x, 1.0f);
 
             if (Selectable.ObjectType == EObjectType::EOT_Light)
             {
@@ -91,7 +92,7 @@ namespace
 
                 // Ambient
                 ImGui::Separator();
-                ImGui::SliderFloat("Ambient", &Selectable.LightData.Ambient.x, 0.0f, 1.0f);
+                ImGui::SliderFloat("Ambient Strength", &InContext.Settings.AmbientStrength, 0.0f, 1.0f);
 
                 // Type of Lighting
                 const char* LightTypeNames[] = {"Direction", "Point", "Spot"};

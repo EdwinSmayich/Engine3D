@@ -89,18 +89,25 @@ namespace FCallBack
         {
             if (Ctx->bDraggingObject)
             {
-                int W, H;
-                glfwGetWindowSize(InWindow, &W, &H); // that exact current size
-                glm::vec3 Ray = FUI::ScreenToWorldRay(InPosX, InPosY, W, H, Ctx->Projection, Ctx->View);
-
-                glm::vec3 O = Ctx->MainCamera.GetPosition();
-                glm::vec3 N = Ctx->MainCamera.GetFrontVector();                          // the plane is facing the camera
-                glm::vec3 P = Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position; // passes through the lamp
-
-                glm::vec3 Hit;
-                if (FMath::RayHitsPlane(O, Ray, P, N, Hit))
+                if (glfwGetMouseButton(InWindow, GLFW_MOUSE_BUTTON_LEFT) != GLFW_PRESS)
                 {
-                    Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position = Hit; // The lamp follows the cursor
+                    Ctx->bDraggingObject = false;
+                }
+                else
+                {
+                    int W, H;
+                    glfwGetWindowSize(InWindow, &W, &H); // that exact current size
+                    glm::vec3 Ray = FUI::ScreenToWorldRay(InPosX, InPosY, W, H, Ctx->Projection, Ctx->View);
+
+                    glm::vec3 O = Ctx->MainCamera.GetPosition();
+                    glm::vec3 N = Ctx->MainCamera.GetFrontVector();                          // the plane is facing the camera
+                    glm::vec3 P = Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position; // passes through the lamp
+
+                    glm::vec3 Hit;
+                    if (FMath::RayHitsPlane(O, Ray, P, N, Hit))
+                    {
+                        Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position = Hit; // The lamp follows the cursor
+                    }
                 }
             }
 
@@ -130,7 +137,6 @@ namespace FCallBack
         auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
 
         // clang-format off
-        if (!Ctx->bCursorModeActive) return;
         if (InButton != GLFW_MOUSE_BUTTON_LEFT) return;
         if (InAction == GLFW_RELEASE)
         {
@@ -138,7 +144,9 @@ namespace FCallBack
             return;
         }
         if (InAction != GLFW_PRESS) return;
+        if (!Ctx->bCursorModeActive) return;
         if (ImGui::GetIO().WantCaptureMouse) return;
+        if (ImGuizmo::IsOver()) return;
         // clang-format on
 
         double MouseX, MouseY;
@@ -155,7 +163,7 @@ namespace FCallBack
         for (int i = 0; i < static_cast<int>(Ctx->SceneObjects.size()); ++i)
         {
             float T;
-            if (FMath::RayHitsSphere(O, Ray, Ctx->SceneObjects[i].Transform.Position, 0.4f, T) && T < Nearest)
+            if (FMath::RayHitsSphere(O, Ray, Ctx->SceneObjects[i].Transform.Position, Ctx->SceneObjects[i].BoundingRadius, T) && T < Nearest)
             {
                 Nearest = T; // This hit is closer than the previous ones
                 Hit = i;
@@ -180,8 +188,7 @@ namespace FCallBack
         Ctx->MainCamera.ProcessMouseScroll(static_cast<GLfloat>(InOffsetY));
     }
 
-    // Process all input: query GLFW whether relevant keys are pressed/released this frame and react
-    // accordingly
+    // Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
     void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext)
     {
         if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -207,6 +214,7 @@ namespace FCallBack
             {
                 glfwSetInputMode(InWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
                 InContext.bFirstMouse = true;
+                InContext.bDraggingObject = false;
             }
         }
 

@@ -12,8 +12,7 @@ struct Light
     vec3 Position;
     vec3 Direction;
     vec3 Color;
-
-    vec3 Ambient;
+    
     vec3 Diffuse;
     vec3 Specular;
 
@@ -32,6 +31,7 @@ struct Light
 #define MAX_LIGHTS 16
 uniform Light uLights[MAX_LIGHTS];
 uniform int uLightCount;
+uniform float uAmbientStrength;
 
 vec3 CalculateDirLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDir);
 vec3 CalculatePointLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDir);
@@ -50,8 +50,10 @@ void main()
 {
     vec3 Norm = normalize(Normal);
     vec3 ViewDir = normalize(uViewPos - FragPos);
-
-    vec3 Result = vec3(0.0f);
+    
+                  // Ambient 
+    vec3 Result = uAmbientStrength * texture(uMaterial.Diffuse, TexCoords).rgb;
+    
     for (int i = 0; i < uLightCount; ++i)
     {
         switch (uLights[i].LightingType)
@@ -79,9 +81,6 @@ void main()
 
 vec3 CalculateDirLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDir)
 {
-    // Ambient
-    vec3 Ambient = InLight.Color * (InLight.Ambient * texture(uMaterial.Diffuse, TexCoords).rgb);
-
     // Diffuse
     vec3 LightDir = normalize(-InLight.Direction);
     float Diff = max(dot(InNorm, LightDir), 0.0f);
@@ -93,14 +92,11 @@ vec3 CalculateDirLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDi
     vec3 Specular = InLight.Specular * InLight.Color * (Spec * texture(uMaterial.Specular, TexCoords).rgb);
 
     // Return final color
-    return (Ambient + Diffuse + Specular);
+    return (Diffuse + Specular);
 }
 
 vec3 CalculatePointLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDir)
 {
-    // Ambient
-    vec3 Ambient = InLight.Color * (InLight.Ambient * texture(uMaterial.Diffuse, TexCoords).rgb);
-
     // Diffuse
     vec3 LightDir = normalize(InLight.Position - InFragPos);
     float Diff = max(dot(InNorm, LightDir), 0.0f);
@@ -117,19 +113,15 @@ vec3 CalculatePointLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InView
     (InLight.Constant + InLight.Linear * Distance +
     InLight.Quadratic * (Distance * Distance));
 
-    Ambient *= Attenuation;
     Diffuse *= Attenuation;
     Specular *= Attenuation;
 
     // Return final color
-    return (Ambient + Diffuse + Specular);
+    return (Diffuse + Specular);
 }
 
 vec3 CalculateSpotLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDir)
 {
-    // Ambient
-    vec3 Ambient = InLight.Color * InLight.Ambient * texture(uMaterial.Diffuse, TexCoords).rgb;
-
     // Diffuse
     vec3 LightDir = normalize(InLight.Position - InFragPos);
     float Diff = max(dot(InNorm, LightDir), 0.0f);
@@ -145,8 +137,7 @@ vec3 CalculateSpotLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewD
     float Attenuation = 1.0f /
     (InLight.Constant + InLight.Linear * Distance +
     InLight.Quadratic * (Distance * Distance));
-
-    Ambient *= Attenuation;
+    
     Diffuse *= Attenuation;
     Specular *= Attenuation;
 
@@ -158,5 +149,5 @@ vec3 CalculateSpotLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewD
     Specular *= Intensity;
 
     // Return final color
-    return (Ambient + Diffuse + Specular);
+    return (Diffuse + Specular);
 }

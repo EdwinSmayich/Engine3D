@@ -299,12 +299,11 @@ int main()
                 continue;
             }
 
-            FSceneObject& Light = Ctx->SceneObjects[LightIndex];
+            FSceneObject& Light = Ctx->SceneObjects[i];
             std::string Base = "uLights[" + std::to_string(LightIndex) + "]";
             CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
             CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
             CubeShader.SetVec3(Base + ".Color", glm::vec3(Light.LightData.Color));
-            CubeShader.SetVec3(Base + ".Ambient", glm::vec3(Light.LightData.Ambient));
             CubeShader.SetVec3(Base + ".Diffuse", glm::vec3(Light.LightData.Diffuse));
             CubeShader.SetVec3(Base + ".Specular", glm::vec3(Light.LightData.Specular));
             CubeShader.SetFloat(Base + ".Constant", Light.LightData.Constant);
@@ -317,6 +316,7 @@ int main()
             ++LightIndex;
         }
         CubeShader.SetInt("uLightCount", LightIndex);
+        CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.AmbientStrength);
 
         // Bind Diffuse map
         glActiveTexture(GL_TEXTURE0);
