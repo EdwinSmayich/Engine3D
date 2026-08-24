@@ -129,22 +129,17 @@ namespace FCallBack
     {
         auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
 
-        // clang-forma off
-        if (!Ctx->bCursorModeActive)
-            return;
-        // if (ImGuizmo::IsOver()) return;
-        if (InButton != GLFW_MOUSE_BUTTON_LEFT)
-            return;
+        // clang-format off
+        if (!Ctx->bCursorModeActive) return;
+        if (InButton != GLFW_MOUSE_BUTTON_LEFT) return;
         if (InAction == GLFW_RELEASE)
         {
             Ctx->bDraggingObject = false;
             return;
         }
-        if (InAction != GLFW_PRESS)
-            return;
-        if (ImGui::GetIO().WantCaptureMouse)
-            return;
-        // clang-forma on
+        if (InAction != GLFW_PRESS) return;
+        if (ImGui::GetIO().WantCaptureMouse) return;
+        // clang-format on
 
         double MouseX, MouseY;
         glfwGetCursorPos(InWindow, &MouseX, &MouseY);

@@ -340,8 +340,6 @@ int main()
             }
             // World/Model transformation
             glm::mat4 Model = Obj.Transform.Matrix();
-            GLfloat Angle = CurrentFrame * 100.0f;
-            Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(1.0f, 0.3f, 0.1f));
             CubeShader.SetMat4("uModel", Model);
 
             // Normal Matrix

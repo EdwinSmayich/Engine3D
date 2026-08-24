@@ -52,13 +52,13 @@ namespace
         }
     }
 
-    void LightsBuild(AppContext& InContext)
+    void SceneBuild(AppContext& InContext)
     {
-        if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Scene Objects", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            ImGui::BeginChild("Light Objects", ImVec2(0.0f, 100.0f), ImGuiChildFlags_Borders);
+            ImGui::BeginChild("Objects", ImVec2(0.0f, 100.0f), ImGuiChildFlags_Borders);
 
-            if (ImGui::BeginTable("LightsTable", 3, ImGuiTableFlags_BordersInnerH))
+            if (ImGui::BeginTable("SortTable", 3, ImGuiTableFlags_BordersInnerH))
             {
                 for (size_t i = 0; i < InContext.SceneObjects.size(); ++i)
                 {
@@ -66,7 +66,8 @@ namespace
 
                     const bool bSelected = (InContext.SelectedObject == i);
 
-                    std::string Label = "Light " + std::to_string(i);
+                    const bool bIsLight = (InContext.SceneObjects[i].ObjectType == EObjectType::EOT_Light);
+                    std::string Label = (bIsLight ? "Light_" : "Cube_") + std::to_string(i);
 
                     if (ImGui::Selectable(Label.c_str(), bSelected, 0, ImVec2(80.0f, 0.0f)))
                     {
@@ -81,64 +82,61 @@ namespace
 
             // Properties of the Selected item
             FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
-            ImGui::ColorEdit3("Light Color", &Selectable.LightData.Color.x);
+            ImGui::DragFloat3("Position", &Selectable.Transform.Position.x, 0.1f);
 
-            ImGui::Checkbox("Animate Light", &Selectable.LightData.bAnimateLight);
-            if (Selectable.LightData.bAnimateLight)
+            if (Selectable.ObjectType == EObjectType::EOT_Light)
             {
-                ImGui::BeginDisabled();
-            }
+                ImGui::ColorEdit3("Light Color", &Selectable.LightData.Color.x);
+                ImGui::Checkbox("Animate Light", &Selectable.LightData.bAnimateLight);
 
-            ImGui::DragFloat3("Light Position", &Selectable.Transform.Position.x, 0.1f);
+                // Ambient
+                ImGui::Separator();
+                ImGui::SliderFloat("Ambient", &Selectable.LightData.Ambient.x, 0.0f, 1.0f);
 
-            if (Selectable.LightData.bAnimateLight)
-            {
-                ImGui::EndDisabled();
-            }
+                // Type of Lighting
+                const char* LightTypeNames[] = {"Direction", "Point", "Spot"};
 
-            // Ambient
-            ImGui::Separator();
-            ImGui::SliderFloat("Ambient", &Selectable.LightData.Ambient.x, 0.0f, 1.0f);
-
-            // Type of Lighting
-            const char* LightTypeNames[] = {"Direction", "Point", "Spot"};
-
-            int CurrentType = static_cast<int>(Selectable.LightData.LightingType);
-            if (ImGui::Combo("Type", &CurrentType, LightTypeNames, IM_ARRAYSIZE(LightTypeNames)))
-            {
-                Selectable.LightData.LightingType = static_cast<LightType>(CurrentType);
-            }
-
-            switch (Selectable.LightData.LightingType)
-            {
-                case LightType::ELT_Directional:
+                int CurrentType = static_cast<int>(Selectable.LightData.LightingType);
+                if (ImGui::Combo("Type", &CurrentType, LightTypeNames, IM_ARRAYSIZE(LightTypeNames)))
                 {
-                    ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.001f, -1.0f, 1.0f);
-                    break;
+                    Selectable.LightData.LightingType = static_cast<LightType>(CurrentType);
                 }
-                case LightType::ELT_Point:
-                {
-                    ImGui::DragFloat("Linear", &Selectable.LightData.Linear, 0.001f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Quadratic", &Selectable.LightData.Quadratic, 0.0001f, 0.0f, 1.0f);
-                    break;
-                }
-                case LightType::ELT_Spot:
-                {
-                    GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.LightData.InnerCutoff));
-                    GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.LightData.OuterCutoff));
 
-                    ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.01f, -1.0f, 1.0f);
-                    if (ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 90.0f))
+                switch (Selectable.LightData.LightingType)
+                {
+                    case LightType::ELT_Directional:
                     {
-                        Selectable.LightData.InnerCutoff = glm::cos(glm::radians(glm::min(InnerAngle, OuterAngle)));
+                        ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.001f, -1.0f, 1.0f);
+                        break;
                     }
-                    if (ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 90.0f))
+                    case LightType::ELT_Point:
                     {
-                        Selectable.LightData.OuterCutoff = glm::cos(glm::radians(glm::max(OuterAngle, InnerAngle)));
+                        ImGui::DragFloat("Linear", &Selectable.LightData.Linear, 0.001f, 0.0f, 1.0f);
+                        ImGui::DragFloat("Quadratic", &Selectable.LightData.Quadratic, 0.0001f, 0.0f, 1.0f);
+                        break;
                     }
+                    case LightType::ELT_Spot:
+                    {
+                        GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.LightData.InnerCutoff));
+                        GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.LightData.OuterCutoff));
 
-                    break;
+                        ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.01f, -1.0f, 1.0f);
+                        if (ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 90.0f))
+                        {
+                            Selectable.LightData.InnerCutoff = glm::cos(glm::radians(glm::min(InnerAngle, OuterAngle)));
+                        }
+                        if (ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 90.0f))
+                        {
+                            Selectable.LightData.OuterCutoff = glm::cos(glm::radians(glm::max(OuterAngle, InnerAngle)));
+                        }
+
+                        break;
+                    }
                 }
+            }
+            else if (Selectable.ObjectType == EObjectType::EOT_Cube)
+            {
+                ImGui::DragFloat3("Scale", &Selectable.Transform.Scale.x, 0.05f, 0.05f, 20.0f);
             }
         }
 
@@ -146,15 +144,21 @@ namespace
         if (ImGui::Button("Add Light"))
         {
             glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
-            FSceneObject Light{EObjectType::EOT_Light, {SpawnPos}, 0.4f, {}};
-            InContext.SceneObjects.push_back(Light);
+            InContext.SceneObjects.push_back({EObjectType::EOT_Light, {SpawnPos}, 0.4f, {}});
             InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1; // Select a new one
         }
 
         ImGui::SameLine();
+        if (ImGui::Button("Add Cube"))
+        {
+            glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
+            InContext.SceneObjects.push_back({EObjectType::EOT_Cube, {SpawnPos}, 1.0f, {}});
+            InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1; // Select a new one
+        }
 
+        ImGui::SameLine();
         ImGui::BeginDisabled(InContext.SceneObjects.size() <= 1);
-        if (ImGui::Button("Remove Light"))
+        if (ImGui::Button("Remove Object"))
         {
             InContext.SceneObjects.erase(InContext.SceneObjects.begin() + InContext.SelectedObject);
 
@@ -188,7 +192,7 @@ namespace FImGuiLayer
         CameraBuild(InContext.MainCamera);
 
         ImGui::Separator();
-        LightsBuild(InContext);
+        SceneBuild(InContext);
 
         ImGui::EndChild();
 
