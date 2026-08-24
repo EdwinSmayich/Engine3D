@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <ImGuizmo.h>
 #include <imgui_internal.h>
+#include "../Math/Math.h"
 
 void AppContext::ResetAppContextToDefaults()
 {
@@ -97,7 +98,7 @@ namespace FCallBack
                 glm::vec3 P = Ctx->Lights[Ctx->SelectedLight].Position; // passes through the lamp
 
                 glm::vec3 Hit;
-                if (FPhysics::RayHitsPlane(O, Ray, P, N, Hit))
+                if (FMath::RayHitsPlane(O, Ray, P, N, Hit))
                 {
                     Ctx->Lights[Ctx->SelectedLight].Position = Hit; // The lamp follows the cursor
                 }
@@ -131,17 +132,14 @@ namespace FCallBack
         // clang-forma off
         if (!Ctx->bCursorModeActive)
             return;
-        if (ImGuizmo::IsOver())
-            return;
+        // if (ImGuizmo::IsOver()) return;
         if (InButton != GLFW_MOUSE_BUTTON_LEFT)
             return;
-
         if (InAction == GLFW_RELEASE)
         {
             Ctx->bDraggingLight = false;
             return;
         }
-
         if (InAction != GLFW_PRESS)
             return;
         if (ImGui::GetIO().WantCaptureMouse)
@@ -162,7 +160,7 @@ namespace FCallBack
         for (int i = 0; i < static_cast<int>(Ctx->Lights.size()); ++i)
         {
             float T;
-            if (FPhysics::RayHitsSphere(O, Ray, Ctx->Lights[i].Position, 0.4f, T) && T < Nearest)
+            if (FMath::RayHitsSphere(O, Ray, Ctx->Lights[i].Position, 0.4f, T) && T < Nearest)
             {
                 Nearest = T; // This hit is closer than the previous ones
                 Hit = i;
@@ -269,47 +267,3 @@ namespace FUI
         return RayWorld;
     }
 } // namespace FUI
-
-namespace FPhysics
-{
-    // clang-format off
-    bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT)
-    {
-        glm::vec3 OC = InC - InO;                       // from the camera to the center of the sphere
-        float Tca = glm::dot(OC, InD);              // projection of OC onto the ray (where the closest approach occurs)
-        if (Tca < 0.0f)
-        {
-            return false;                               // sphere BEHIND the ray — misses
-        }
-
-        float D2 = glm::dot(OC, OC) - Tca * Tca;    // square of the distance from the center to the ray line
-        float R2 = InR * InR;
-        if (D2 > R2)
-        {
-            return false;                               // the ray passes BY the sphere
-        }
-
-        float Thc = glm::sqrt(R2 - D2);              // half of the chord inside the sphere
-        OutT = Tca - Thc;                               // distance to the NEAREST entry point
-        return true;
-    }
-    
-    bool RayHitsPlane(glm::vec3 InO, glm::vec3 InD, glm::vec3 InPlanePoint, glm::vec3 InPlaneNormal, glm::vec3& OutHit)
-    {
-        float Denom = glm::dot(InD, InPlaneNormal);
-        if (glm::abs(Denom) < 1e-6f)
-        {
-            return false;                               // If a ray is parallel to a plane, it will not intersect it.
-        }
-        
-        float T = glm::dot(InPlanePoint - InO, InPlaneNormal) / Denom;
-        if (T < 0.0f)
-        {
-            return false;                               // the plane behind the camera
-        }
-        
-        OutHit = InO + T * InD;                         // point of impact
-        return true;
-    }
-    // clang-format on
-} // namespace FPhysics

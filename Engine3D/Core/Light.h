@@ -9,7 +9,7 @@ enum class LightType : uint8_t
     ELT_Spot = 2
 };
 
-struct Light
+struct FLight
 {
     glm::vec3 Position;
     glm::vec3 Direction = glm::vec3(0.0f, 0.0f, -1.0f);

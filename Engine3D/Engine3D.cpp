@@ -262,7 +262,7 @@ int main()
         glBindVertexArray(LightVAO);
         for (size_t i = 0; i < Ctx->Lights.size(); ++i)
         {
-            Light& L = Ctx->Lights[i]; // TODO: mb set conts here
+            FLight& L = Ctx->Lights[i]; // TODO: mb set conts here
             bool bSelected = (i == Ctx->SelectedLight);
 
             GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger

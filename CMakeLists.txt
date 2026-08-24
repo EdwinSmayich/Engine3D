@@ -73,7 +73,11 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Core/Light.h
         Engine3D/Core/AppContext.h
         Engine3D/Core/AppContext.cpp
-        Engine3D/Core/Materials.h)
+        Engine3D/Core/Materials.h
+        Engine3D/Core/SceneObject.h
+        Engine3D/Math/Math.h
+        Engine3D/Math/Math.cpp
+        Engine3D/Math/Transform.h)
 
 target_link_libraries(Engine3D PRIVATE
         glfw

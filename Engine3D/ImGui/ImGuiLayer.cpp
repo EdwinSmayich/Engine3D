@@ -80,7 +80,7 @@ namespace
             ImGui::EndChild();
 
             // Properties of the Selected item
-            Light& Selectable = InContext.Lights[InContext.SelectedLight];
+            FLight& Selectable = InContext.Lights[InContext.SelectedLight];
             ImGui::ColorEdit3("Light Color", &Selectable.Color.x);
 
             ImGui::Checkbox("Animate Light", &Selectable.bAnimateLight);

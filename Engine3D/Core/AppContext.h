@@ -32,7 +32,7 @@ struct AppContext
     MaterialLibrary Materials;
 
     // Scene
-    std::vector<Light> Lights{
+    std::vector<FLight> Lights{
         {glm::vec3(-4.0f, 3.0f, 4.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f)}, // White
         // {glm::vec3(6.0f, 2.0f, -2.0f), glm::vec3(1.0f, 0.3f, 0.3f)},  // Reddish
         // {glm::vec3(0.0f, 5.0f, -8.0f), glm::vec3(0.3f, 0.4f, 1.0f)},  // Bluish
@@ -63,16 +63,3 @@ namespace FUI
 {
     glm::vec3 ScreenToWorldRay(GLdouble InMouseX, GLdouble InMouseY, GLint InWidth, GLint InHeight, const glm::mat4& InProj, const glm::mat4& InView);
 } // namespace FUI
-
-namespace FPhysics
-{
-    /*
-     * OC — The vector from the camera to the center of the sphere.
-     * Tca — The distance along the ray from the point closest to the center. Negative → sphere behind → misses.
-     * D2 - is the square of the perpendicular distance from the center of the sphere to the ray.
-     * If R² is greater, the ray passed on the outside → it missed.
-     * Thc — the half-length of the ray segment inside the sphere; Tca − Thc = the distance to the point where the ray enters the sphere.
-     */
-    bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT);
-    bool RayHitsPlane(glm::vec3 InO, glm::vec3 InD, glm::vec3 InPlanePoint, glm::vec3 InPlaneNormal, glm::vec3& OutHit);
-} // namespace FPhysics
