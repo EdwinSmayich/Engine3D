@@ -36,8 +36,14 @@ struct AppContext
     // clang-format off
     std::vector<FSceneObject> SceneObjects
     {
-        {EObjectType::EOT_Light, {glm::vec3(-4.0f, 3.0f, 4.0f)}, 0.4f, {}},
-        {EObjectType::EOT_Light, {glm::vec3(6.0f, 2.0f, 4.0f)}, 0.4f, {}}
+        // Lights
+        {EObjectType::EOT_Light, {glm::vec3(-5.0f, 0.0f, 0.0f)}, 0.4f, {}},
+        {EObjectType::EOT_Light, {glm::vec3(6.0f, 2.0f, 4.0f)}, 0.4f, {}},
+        
+        // Cubes
+        {EObjectType::EOT_Cube, {glm::vec3(-5.0f,  0.0f,  -3.0f)}, 1.0f, {}},
+        {EObjectType::EOT_Cube, {glm::vec3(6.0f, 2.0f, 1.0f)}, 1.0f, {}},
+        {EObjectType::EOT_Cube, {glm::vec3(-4.5f, -4.2f, -2.5f)}, 1.0f, {}}
     };
     // clang-format on
 

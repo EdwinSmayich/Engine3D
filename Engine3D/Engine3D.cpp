@@ -144,19 +144,6 @@ int main()
         20,21,22,
         20,22,23
     };
-    
-    glm::vec3 CubePositions[] = {
-        glm::vec3( -5.0f,  0.0f,  -3.0f), 
-        glm::vec3( 5.0f, -2.4f, -5.5f),  
-        glm::vec3(-4.5f, -4.2f, -2.5f),  
-        glm::vec3( 5.0f,  7.0f, -15.0f), 
-        glm::vec3(-7.8f, -4.0f, -12.3f),  
-        glm::vec3(-4.7f,  5.0f, -7.5f),  
-        glm::vec3( 2.3f, -4.0f, -2.5f),  
-        glm::vec3( 4.5f,  4.0f, -2.5f), 
-        glm::vec3( 4.5f,  1.2f, -1.5f), 
-        glm::vec3(-4.3f,  2.0f, -1.5f)  
-    };
     // clang-format on
 
     // Vertex Array
@@ -262,6 +249,11 @@ int main()
         glBindVertexArray(LightVAO);
         for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
         {
+            if (Ctx->SceneObjects[i].ObjectType != EObjectType::EOT_Light)
+            {
+                continue;
+            }
+
             FSceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
             bool bSelected = (i == Ctx->SelectedObject);
 
@@ -275,8 +267,7 @@ int main()
                 Light.Transform.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
             }
 
-            glm::mat4 LightModelMatrix(1.0f);
-            LightModelMatrix = glm::translate(LightModelMatrix, Light.Transform.Position);
+            glm::mat4 LightModelMatrix = Light.Transform.Matrix();
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
@@ -298,14 +289,18 @@ int main()
         CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
 
         // Lighting
-        CubeShader.SetInt("uLightCount", Ctx->SceneObjects.size());
         CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetPosition());
 
+        GLint LightIndex = 0;
         for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
         {
-            FSceneObject& Light = Ctx->SceneObjects[i];
+            if (Ctx->SceneObjects[i].ObjectType != EObjectType::EOT_Light)
+            {
+                continue;
+            }
 
-            std::string Base = "uLights[" + std::to_string(i) + "]";
+            FSceneObject& Light = Ctx->SceneObjects[LightIndex];
+            std::string Base = "uLights[" + std::to_string(LightIndex) + "]";
             CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
             CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
             CubeShader.SetVec3(Base + ".Color", glm::vec3(Light.LightData.Color));
@@ -318,7 +313,10 @@ int main()
             CubeShader.SetFloat(Base + ".InnerCutoff", Light.LightData.InnerCutoff);
             CubeShader.SetFloat(Base + ".OuterCutoff", Light.LightData.OuterCutoff);
             CubeShader.SetInt(Base + ".LightingType", static_cast<int>(Light.LightData.LightingType));
+
+            ++LightIndex;
         }
+        CubeShader.SetInt("uLightCount", LightIndex);
 
         // Bind Diffuse map
         glActiveTexture(GL_TEXTURE0);
@@ -334,11 +332,14 @@ int main()
 
         // Render cubes
         glBindVertexArray(CubesVAO);
-        for (size_t i = 0; i < NUM_CUBES; ++i)
+        for (FSceneObject& Obj : Ctx->SceneObjects)
         {
+            if (Obj.ObjectType != EObjectType::EOT_Cube)
+            {
+                continue;
+            }
             // World/Model transformation
-            glm::mat4 Model(1.0f);
-            Model = glm::translate(Model, CubePositions[i]);
+            glm::mat4 Model = Obj.Transform.Matrix();
             GLfloat Angle = CurrentFrame * 100.0f;
             Model = glm::rotate(Model, glm::radians(Angle), glm::vec3(1.0f, 0.3f, 0.1f));
             CubeShader.SetMat4("uModel", Model);
@@ -357,12 +358,13 @@ int main()
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetRect(0.0f, 0.0f, IO.DisplaySize.x, IO.DisplaySize.y);
 
-            glm::mat4 GizmoModel = glm::translate(glm::mat4(1.0f), Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position);
+            FSceneObject& Obj = Ctx->SceneObjects[Ctx->SelectedObject];
+            glm::mat4 GizmoModel = Obj.Transform.Matrix();
             ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(GizmoModel));
 
             if (ImGuizmo::IsUsing())
             {
-                Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position = glm::vec3(GizmoModel[3]);
+                Obj.Transform.Position = glm::vec3(GizmoModel[3]);
             }
         }
 
