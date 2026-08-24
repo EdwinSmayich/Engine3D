@@ -12,8 +12,8 @@ void AppContext::ResetAppContextToDefaults()
     Settings = DebugSettings{};
 
     // Light properties
-    Lights = AppContext{}.Lights;
-    SelectedLight = 0;
+    SceneObjects = AppContext{}.SceneObjects;
+    SelectedObject = 0;
 }
 
 namespace FTexture
@@ -87,20 +87,20 @@ namespace FCallBack
 
         if (Ctx->bCursorModeActive)
         {
-            if (Ctx->bDraggingLight)
+            if (Ctx->bDraggingObject)
             {
                 int W, H;
                 glfwGetWindowSize(InWindow, &W, &H); // that exact current size
                 glm::vec3 Ray = FUI::ScreenToWorldRay(InPosX, InPosY, W, H, Ctx->Projection, Ctx->View);
 
                 glm::vec3 O = Ctx->MainCamera.GetPosition();
-                glm::vec3 N = Ctx->MainCamera.GetFrontVector();         // the plane is facing the camera
-                glm::vec3 P = Ctx->Lights[Ctx->SelectedLight].Position; // passes through the lamp
+                glm::vec3 N = Ctx->MainCamera.GetFrontVector();                          // the plane is facing the camera
+                glm::vec3 P = Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position; // passes through the lamp
 
                 glm::vec3 Hit;
                 if (FMath::RayHitsPlane(O, Ray, P, N, Hit))
                 {
-                    Ctx->Lights[Ctx->SelectedLight].Position = Hit; // The lamp follows the cursor
+                    Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position = Hit; // The lamp follows the cursor
                 }
             }
 
@@ -137,7 +137,7 @@ namespace FCallBack
             return;
         if (InAction == GLFW_RELEASE)
         {
-            Ctx->bDraggingLight = false;
+            Ctx->bDraggingObject = false;
             return;
         }
         if (InAction != GLFW_PRESS)
@@ -157,10 +157,10 @@ namespace FCallBack
         int Hit = -1;
         float Nearest = std::numeric_limits<float>::max();
 
-        for (int i = 0; i < static_cast<int>(Ctx->Lights.size()); ++i)
+        for (int i = 0; i < static_cast<int>(Ctx->SceneObjects.size()); ++i)
         {
             float T;
-            if (FMath::RayHitsSphere(O, Ray, Ctx->Lights[i].Position, 0.4f, T) && T < Nearest)
+            if (FMath::RayHitsSphere(O, Ray, Ctx->SceneObjects[i].Transform.Position, 0.4f, T) && T < Nearest)
             {
                 Nearest = T; // This hit is closer than the previous ones
                 Hit = i;
@@ -169,8 +169,8 @@ namespace FCallBack
 
         if (Hit != -1)
         {
-            Ctx->SelectedLight = Hit; // chose the lamp that the beam hit
-            Ctx->bDraggingLight = true;
+            Ctx->SelectedObject = Hit; // chose the lamp that the beam hit
+            Ctx->bDraggingObject = true;
         }
     }
 

@@ -60,17 +60,17 @@ namespace
 
             if (ImGui::BeginTable("LightsTable", 3, ImGuiTableFlags_BordersInnerH))
             {
-                for (size_t i = 0; i < InContext.Lights.size(); ++i)
+                for (size_t i = 0; i < InContext.SceneObjects.size(); ++i)
                 {
                     ImGui::TableNextColumn();
 
-                    const bool bSelected = (InContext.SelectedLight == i);
+                    const bool bSelected = (InContext.SelectedObject == i);
 
                     std::string Label = "Light " + std::to_string(i);
 
                     if (ImGui::Selectable(Label.c_str(), bSelected, 0, ImVec2(80.0f, 0.0f)))
                     {
-                        InContext.SelectedLight = i;
+                        InContext.SelectedObject = i;
                     }
                 }
 
@@ -80,61 +80,61 @@ namespace
             ImGui::EndChild();
 
             // Properties of the Selected item
-            FLight& Selectable = InContext.Lights[InContext.SelectedLight];
-            ImGui::ColorEdit3("Light Color", &Selectable.Color.x);
+            FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
+            ImGui::ColorEdit3("Light Color", &Selectable.LightData.Color.x);
 
-            ImGui::Checkbox("Animate Light", &Selectable.bAnimateLight);
-            if (Selectable.bAnimateLight)
+            ImGui::Checkbox("Animate Light", &Selectable.LightData.bAnimateLight);
+            if (Selectable.LightData.bAnimateLight)
             {
                 ImGui::BeginDisabled();
             }
 
-            ImGui::DragFloat3("Light Position", &Selectable.Position.x, 0.1f);
+            ImGui::DragFloat3("Light Position", &Selectable.Transform.Position.x, 0.1f);
 
-            if (Selectable.bAnimateLight)
+            if (Selectable.LightData.bAnimateLight)
             {
                 ImGui::EndDisabled();
             }
 
             // Ambient
             ImGui::Separator();
-            ImGui::SliderFloat("Ambient", &Selectable.Ambient.x, 0.0f, 1.0f);
+            ImGui::SliderFloat("Ambient", &Selectable.LightData.Ambient.x, 0.0f, 1.0f);
 
             // Type of Lighting
             const char* LightTypeNames[] = {"Direction", "Point", "Spot"};
 
-            int CurrentType = static_cast<int>(Selectable.LightingType);
+            int CurrentType = static_cast<int>(Selectable.LightData.LightingType);
             if (ImGui::Combo("Type", &CurrentType, LightTypeNames, IM_ARRAYSIZE(LightTypeNames)))
             {
-                Selectable.LightingType = static_cast<LightType>(CurrentType);
+                Selectable.LightData.LightingType = static_cast<LightType>(CurrentType);
             }
 
-            switch (Selectable.LightingType)
+            switch (Selectable.LightData.LightingType)
             {
                 case LightType::ELT_Directional:
                 {
-                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.001f, -1.0f, 1.0f);
+                    ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.001f, -1.0f, 1.0f);
                     break;
                 }
                 case LightType::ELT_Point:
                 {
-                    ImGui::DragFloat("Linear", &Selectable.Linear, 0.001f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Quadratic", &Selectable.Quadratic, 0.0001f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Linear", &Selectable.LightData.Linear, 0.001f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Quadratic", &Selectable.LightData.Quadratic, 0.0001f, 0.0f, 1.0f);
                     break;
                 }
                 case LightType::ELT_Spot:
                 {
-                    GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.InnerCutoff));
-                    GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.OuterCutoff));
+                    GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.LightData.InnerCutoff));
+                    GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.LightData.OuterCutoff));
 
-                    ImGui::DragFloat3("Direction", &Selectable.Direction.x, 0.01f, -1.0f, 1.0f);
+                    ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.01f, -1.0f, 1.0f);
                     if (ImGui::SliderFloat("Inner Cutoff", &InnerAngle, 0.0f, 90.0f))
                     {
-                        Selectable.InnerCutoff = glm::cos(glm::radians(glm::min(InnerAngle, OuterAngle)));
+                        Selectable.LightData.InnerCutoff = glm::cos(glm::radians(glm::min(InnerAngle, OuterAngle)));
                     }
                     if (ImGui::SliderFloat("Outer Cutoff", &OuterAngle, 0.0f, 90.0f))
                     {
-                        Selectable.OuterCutoff = glm::cos(glm::radians(glm::max(OuterAngle, InnerAngle)));
+                        Selectable.LightData.OuterCutoff = glm::cos(glm::radians(glm::max(OuterAngle, InnerAngle)));
                     }
 
                     break;
@@ -146,20 +146,21 @@ namespace
         if (ImGui::Button("Add Light"))
         {
             glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
-            InContext.Lights.push_back({SpawnPos, glm::vec3(0.0f, 0.0f, -1.0f)});
-            InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1; // Select a new one
+            FSceneObject Light{EObjectType::EOT_Light, {SpawnPos}, 0.4f, {}};
+            InContext.SceneObjects.push_back(Light);
+            InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1; // Select a new one
         }
 
         ImGui::SameLine();
 
-        ImGui::BeginDisabled(InContext.Lights.size() <= 1);
+        ImGui::BeginDisabled(InContext.SceneObjects.size() <= 1);
         if (ImGui::Button("Remove Light"))
         {
-            InContext.Lights.erase(InContext.Lights.begin() + InContext.SelectedLight);
+            InContext.SceneObjects.erase(InContext.SceneObjects.begin() + InContext.SelectedObject);
 
-            if (InContext.SelectedLight >= static_cast<int>(InContext.Lights.size()))
+            if (InContext.SelectedObject >= static_cast<int>(InContext.SceneObjects.size()))
             {
-                InContext.SelectedLight = static_cast<int>(InContext.Lights.size()) - 1;
+                InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1;
             }
         }
         ImGui::EndDisabled();

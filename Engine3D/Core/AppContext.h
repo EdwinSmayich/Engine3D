@@ -3,6 +3,7 @@
 #include "DebugSettings.h"
 #include "Light.h"
 #include "Materials.h"
+#include "SceneObject.h"
 #include "../Camera/Camera.h"
 #include "GLFW/glfw3.h"
 
@@ -32,14 +33,16 @@ struct AppContext
     MaterialLibrary Materials;
 
     // Scene
-    std::vector<FLight> Lights{
-        {glm::vec3(-4.0f, 3.0f, 4.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(1.0f)}, // White
-        // {glm::vec3(6.0f, 2.0f, -2.0f), glm::vec3(1.0f, 0.3f, 0.3f)},  // Reddish
-        // {glm::vec3(0.0f, 5.0f, -8.0f), glm::vec3(0.3f, 0.4f, 1.0f)},  // Bluish
+    // clang-format off
+    std::vector<FSceneObject> SceneObjects
+    {
+        {EObjectType::EOT_Light, {glm::vec3(-4.0f, 3.0f, 4.0f)}, 0.4f, {}},
+        {EObjectType::EOT_Light, {glm::vec3(6.0f, 2.0f, 4.0f)}, 0.4f, {}}
     };
+    // clang-format on
 
-    int SelectedLight = 0;       // Which light we are editing right now
-    bool bDraggingLight = false; // Status: "I'm draging it right now"
+    int SelectedObject = 0;       // Which object we are editing right now
+    bool bDraggingObject = false; // Status: "I'm draging it right now"
 
     void ResetAppContextToDefaults();
 };

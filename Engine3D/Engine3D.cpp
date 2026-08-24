@@ -260,23 +260,23 @@ int main()
 
         // Render light cubes
         glBindVertexArray(LightVAO);
-        for (size_t i = 0; i < Ctx->Lights.size(); ++i)
+        for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
         {
-            FLight& L = Ctx->Lights[i]; // TODO: mb set conts here
-            bool bSelected = (i == Ctx->SelectedLight);
+            FSceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
+            bool bSelected = (i == Ctx->SelectedObject);
 
             GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger
-            LightingCubeShader.SetVec3("uLightColor", bSelected ? glm::vec3(1.0f) : L.Color);
+            LightingCubeShader.SetVec3("uLightColor", bSelected ? glm::vec3(1.0f) : Light.LightData.Color);
 
-            if (L.bAnimateLight)
+            if (Light.LightData.bAnimateLight)
             {
                 GLfloat Speed = 3.0f;
-                L.Position.y = glm::sin(CurrentFrame * Speed) * 7.0f;
-                L.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
+                Light.Transform.Position.y = glm::sin(CurrentFrame * Speed) * 7.0f;
+                Light.Transform.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
             }
 
             glm::mat4 LightModelMatrix(1.0f);
-            LightModelMatrix = glm::translate(LightModelMatrix, L.Position);
+            LightModelMatrix = glm::translate(LightModelMatrix, Light.Transform.Position);
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
@@ -298,24 +298,26 @@ int main()
         CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
 
         // Lighting
-        CubeShader.SetInt("uLightCount", Ctx->Lights.size());
+        CubeShader.SetInt("uLightCount", Ctx->SceneObjects.size());
         CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetPosition());
 
-        for (size_t i = 0; i < Ctx->Lights.size(); ++i)
+        for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
         {
+            FSceneObject& Light = Ctx->SceneObjects[i];
+
             std::string Base = "uLights[" + std::to_string(i) + "]";
-            CubeShader.SetVec3(Base + ".Position", glm::vec3(Ctx->Lights[i].Position));
-            CubeShader.SetVec3(Base + ".Direction", glm::vec3(Ctx->Lights[i].Direction));
-            CubeShader.SetVec3(Base + ".Color", glm::vec3(Ctx->Lights[i].Color));
-            CubeShader.SetVec3(Base + ".Ambient", glm::vec3(Ctx->Lights[i].Ambient));
-            CubeShader.SetVec3(Base + ".Diffuse", glm::vec3(Ctx->Lights[i].Diffuse));
-            CubeShader.SetVec3(Base + ".Specular", glm::vec3(Ctx->Lights[i].Specular));
-            CubeShader.SetFloat(Base + ".Constant", Ctx->Lights[i].Constant);
-            CubeShader.SetFloat(Base + ".Linear", Ctx->Lights[i].Linear);
-            CubeShader.SetFloat(Base + ".Quadratic", Ctx->Lights[i].Quadratic);
-            CubeShader.SetFloat(Base + ".InnerCutoff", Ctx->Lights[i].InnerCutoff);
-            CubeShader.SetFloat(Base + ".OuterCutoff", Ctx->Lights[i].OuterCutoff);
-            CubeShader.SetInt(Base + ".LightingType", static_cast<int>(Ctx->Lights[i].LightingType));
+            CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
+            CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
+            CubeShader.SetVec3(Base + ".Color", glm::vec3(Light.LightData.Color));
+            CubeShader.SetVec3(Base + ".Ambient", glm::vec3(Light.LightData.Ambient));
+            CubeShader.SetVec3(Base + ".Diffuse", glm::vec3(Light.LightData.Diffuse));
+            CubeShader.SetVec3(Base + ".Specular", glm::vec3(Light.LightData.Specular));
+            CubeShader.SetFloat(Base + ".Constant", Light.LightData.Constant);
+            CubeShader.SetFloat(Base + ".Linear", Light.LightData.Linear);
+            CubeShader.SetFloat(Base + ".Quadratic", Light.LightData.Quadratic);
+            CubeShader.SetFloat(Base + ".InnerCutoff", Light.LightData.InnerCutoff);
+            CubeShader.SetFloat(Base + ".OuterCutoff", Light.LightData.OuterCutoff);
+            CubeShader.SetInt(Base + ".LightingType", static_cast<int>(Light.LightData.LightingType));
         }
 
         // Bind Diffuse map
@@ -349,18 +351,18 @@ int main()
         }
 
         // ImGuizmo render
-        if (!Ctx->Lights.empty())
+        if (!Ctx->SceneObjects.empty())
         {
             ImGuiIO& IO = ImGui::GetIO();
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetRect(0.0f, 0.0f, IO.DisplaySize.x, IO.DisplaySize.y);
 
-            glm::mat4 GizmoModel = glm::translate(glm::mat4(1.0f), Ctx->Lights[Ctx->SelectedLight].Position);
+            glm::mat4 GizmoModel = glm::translate(glm::mat4(1.0f), Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position);
             ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(GizmoModel));
 
             if (ImGuizmo::IsUsing())
             {
-                Ctx->Lights[Ctx->SelectedLight].Position = glm::vec3(GizmoModel[3]);
+                Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position = glm::vec3(GizmoModel[3]);
             }
         }
 
