@@ -1,24 +1,16 @@
 ﻿#pragma once
-#include "glm/ext/matrix_transform.hpp"
-
 #include <glm/vec3.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/mat4x4.hpp>
+#include "glm/ext/matrix_transform.hpp"
 
 struct FTransform
 {
     glm::vec3 Position = glm::vec3(0.0f);
-    glm::vec3 RotationEuler = glm::vec3(0.0f); // X = Pitch, Y = Yaw, Z = Roll
+    glm::vec3 RotationEuler = glm::vec3(0.0f);              // What a person controls (degrees)
+    glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // What the engine calculates
     glm::vec3 Scale = glm::vec3(1.0f);
-    glm::mat4 Matrix() const
-    {
-        glm::mat4 T = glm::translate(glm::mat4(1.0f), Position);
 
-        glm::mat4 R = glm::rotate(glm::mat4(1.0f), glm::radians(RotationEuler.y), glm::vec3(0.0f, 1.0f, 0.0f)); // Paw
-        R = glm::rotate(R, glm::radians(RotationEuler.x), glm::vec3(1.0f, 0.0f, 0.0f));                         // Pitch
-        R = glm::rotate(R, glm::radians(RotationEuler.z), glm::vec3(0.0f, 0.0f, 1.0f));                         // Roll
-
-        glm::mat4 S = glm::scale(glm::mat4(1.0f), Scale);
-
-        return T * R * S;
-    }
+    void UpdateRotationFromEuler();
+    glm::mat4 Matrix() const;
 };

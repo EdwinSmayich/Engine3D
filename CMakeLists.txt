@@ -77,7 +77,8 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Core/SceneObject.h
         Engine3D/Math/Math.h
         Engine3D/Math/Math.cpp
-        Engine3D/Math/Transform.h)
+        Engine3D/Math/Transform.h
+        Engine3D/Math/Transform.cpp)
 
 target_link_libraries(Engine3D PRIVATE
         glfw
@@ -94,6 +95,6 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT E
 # and re-running applies the change instantly - no copying, no CMake cache reset.
 # (For a portable/shippable build later, copy shaders next to the .exe instead.)
 # ---------------------------------------------------------------------------
+target_compile_definitions(Engine3D PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(Engine3D PRIVATE SHADER_DIR="${CMAKE_SOURCE_DIR}/Shaders")
-
 target_compile_definitions(Engine3D PRIVATE TEXTURE_DIR="${CMAKE_SOURCE_DIR}/Textures/Images")

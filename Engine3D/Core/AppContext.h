@@ -12,8 +12,24 @@ constexpr GLint WIDTH_SCREEN = 1920;
 constexpr GLint HEIGHT_SCREEN = 1200;
 constexpr glm::vec2 CENTER_SCREEN = glm::vec2(WIDTH_SCREEN * 0.5f, HEIGHT_SCREEN * 0.5f);
 
-struct AppContext
+enum class EGizmoOperation : std::uint8_t
 {
+    EGO_Translate,
+    EGO_Rotate,
+    EGO_Scale
+};
+
+enum class EGizmoMode : std::uint8_t
+{
+    EGM_World,
+    EGM_Local
+};
+
+struct FAppContext
+{
+    EGizmoOperation GizmoOperation = EGizmoOperation::EGO_Translate;
+    EGizmoMode GizmoMode = EGizmoMode::EGM_World;
+
     glm::mat4 Projection;
     glm::mat4 View;
 
@@ -65,7 +81,7 @@ namespace FCallBack
     void MouseCursorPosCallback(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY);
     void MouseButtonCallback(GLFWwindow* InWindow, GLint InButton, GLint InAction, GLint /*Mods*/);
     void ScrollCallback(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY);
-    void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext);
+    void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, FAppContext& InContext);
 } // namespace FCallBack
 
 namespace FUI

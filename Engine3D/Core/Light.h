@@ -2,7 +2,7 @@
 #include <glm/vec3.hpp>
 #include <glm/trigonometric.hpp>
 
-enum class LightType : uint8_t
+enum class LightType : std::uint8_t
 {
     ELT_Directional = 0,
     ELT_Point = 1,

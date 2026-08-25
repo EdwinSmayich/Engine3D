@@ -15,6 +15,7 @@
 #include "Shader.h"
 #include "Core/AppContext.h"
 #include "glm/gtc/type_ptr.inl"
+#include "glm/gtx/matrix_decompose.hpp"
 
 int main()
 {
@@ -39,7 +40,7 @@ int main()
     }
 
     glfwMakeContextCurrent(Window);
-    AppContext Context;
+    FAppContext Context;
     glfwSetWindowUserPointer(Window, &Context);
 
     GLint Version = gladLoadGL(glfwGetProcAddress);
@@ -198,7 +199,7 @@ int main()
 
     while (!glfwWindowShouldClose(Window))
     {
-        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(Window));
+        auto* Ctx = static_cast<FAppContext*>(glfwGetWindowUserPointer(Window));
 
         // Per-frame time logic
         GLfloat CurrentFrame = static_cast<GLfloat>(glfwGetTime());
@@ -352,17 +353,37 @@ int main()
         // ImGuizmo render
         if (!Ctx->SceneObjects.empty())
         {
+            FTransform& TransformObj = Ctx->SceneObjects[Ctx->SelectedObject].Transform;
+
             ImGuiIO& IO = ImGui::GetIO();
             ImGuizmo::SetOrthographic(false);
             ImGuizmo::SetRect(0.0f, 0.0f, IO.DisplaySize.x, IO.DisplaySize.y);
 
-            FSceneObject& Obj = Ctx->SceneObjects[Ctx->SelectedObject];
-            glm::mat4 GizmoModel = Obj.Transform.Matrix();
-            ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), ImGuizmo::TRANSLATE, ImGuizmo::WORLD, glm::value_ptr(GizmoModel));
+            ImGuizmo::OPERATION Operation = ImGuizmo::TRANSLATE;
+            if (Ctx->GizmoOperation == EGizmoOperation::EGO_Rotate)
+            {
+                Operation = ImGuizmo::ROTATE;
+            }
+            else if (Ctx->GizmoOperation == EGizmoOperation::EGO_Scale)
+            {
+                Operation = ImGuizmo::SCALE;
+            }
+
+            ImGuizmo::MODE Mode = (Ctx->GizmoMode == EGizmoMode::EGM_Local) ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
+
+            glm::mat4 GizmoModel = TransformObj.Matrix();
+            ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), Operation, Mode, glm::value_ptr(GizmoModel));
 
             if (ImGuizmo::IsUsing())
             {
-                Obj.Transform.Position = glm::vec3(GizmoModel[3]);
+                glm::vec3 NewPos, NewScale, Skew;
+                glm::quat NewRot;
+                glm::vec4 Perspective;
+                glm::decompose(GizmoModel, NewScale, NewRot, NewPos, Skew, Perspective);
+
+                TransformObj.Position = NewPos;
+                TransformObj.Rotation = NewRot;
+                TransformObj.Scale = NewScale;
             }
         }
 

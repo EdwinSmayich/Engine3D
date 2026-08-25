@@ -7,12 +7,12 @@
 #include <imgui_internal.h>
 #include "../Math/Math.h"
 
-void AppContext::ResetAppContextToDefaults()
+void FAppContext::ResetAppContextToDefaults()
 {
     Settings = DebugSettings{};
 
     // Light properties
-    SceneObjects = AppContext{}.SceneObjects;
+    SceneObjects = FAppContext{}.SceneObjects;
     SelectedObject = 0;
 }
 
@@ -83,7 +83,7 @@ namespace FCallBack
 
     void MouseCursorPosCallback(GLFWwindow* InWindow, GLdouble InPosX, GLdouble InPosY)
     {
-        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+        auto* Ctx = static_cast<FAppContext*>(glfwGetWindowUserPointer(InWindow));
 
         if (Ctx->bCursorModeActive)
         {
@@ -134,7 +134,7 @@ namespace FCallBack
 
     void MouseButtonCallback(GLFWwindow* InWindow, GLint InButton, GLint InAction, GLint /*Mods*/)
     {
-        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+        auto* Ctx = static_cast<FAppContext*>(glfwGetWindowUserPointer(InWindow));
 
         // clang-format off
         if (InButton != GLFW_MOUSE_BUTTON_LEFT) return;
@@ -184,12 +184,12 @@ namespace FCallBack
             return;
         }
 
-        auto* Ctx = static_cast<AppContext*>(glfwGetWindowUserPointer(InWindow));
+        auto* Ctx = static_cast<FAppContext*>(glfwGetWindowUserPointer(InWindow));
         Ctx->MainCamera.ProcessMouseScroll(static_cast<GLfloat>(InOffsetY));
     }
 
     // Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-    void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, AppContext& InContext)
+    void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, FAppContext& InContext)
     {
         if (glfwGetKey(InWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         {

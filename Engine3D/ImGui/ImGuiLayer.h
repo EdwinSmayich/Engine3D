@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-struct AppContext;
+struct FAppContext;
 
 namespace FImGuiLayer
 {
-    void BuildUI(AppContext& InContext);
+    void BuildUI(FAppContext& InContext);
 
 } // namespace FImGuiLayer

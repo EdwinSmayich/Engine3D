@@ -3,6 +3,65 @@
 #include <imgui.h>
 #include "../Core/AppContext.h"
 
+namespace FUIFunction
+{
+    void TransformObjectOnScene(FAppContext& InContext, FSceneObject& InObj)
+    {
+        ImGui::Text("Gizmo:");
+        if (ImGui::RadioButton("Move", InContext.GizmoOperation == EGizmoOperation::EGO_Translate))
+        {
+            InContext.GizmoOperation = EGizmoOperation::EGO_Translate;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Rotate", InContext.GizmoOperation == EGizmoOperation::EGO_Rotate))
+        {
+            InContext.GizmoOperation = EGizmoOperation::EGO_Rotate;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Scale", InContext.GizmoOperation == EGizmoOperation::EGO_Scale))
+        {
+            InContext.GizmoOperation = EGizmoOperation::EGO_Scale;
+        }
+        if (ImGui::RadioButton("World", InContext.GizmoMode == EGizmoMode::EGM_World))
+        {
+            InContext.GizmoMode = EGizmoMode::EGM_World;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Local", InContext.GizmoMode == EGizmoMode::EGM_Local))
+        {
+            InContext.GizmoMode = EGizmoMode::EGM_Local;
+        }
+
+        ImGui::Separator();
+        ImGui::DragFloat3("Position", &InObj.Transform.Position.x, 0.1f);
+
+        ImGui::Text("Rotate (delta):");
+        ImGui::Text("Quat: %.3f %.3f %.3f %.3f", InObj.Transform.Rotation.x, InObj.Transform.Rotation.y, InObj.Transform.Rotation.z,
+                    InObj.Transform.Rotation.w);
+
+        if (ImGui::Button("X +15"))
+        {
+            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Y +15"))
+        {
+            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("Z +15"))
+        {
+            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        }
+        if (ImGui::DragFloat3("RotationEuler", &InObj.Transform.RotationEuler.x, 1.0f))
+        {
+            InObj.Transform.UpdateRotationFromEuler();
+        }
+
+        ImGui::DragFloat3("Scale", &InObj.Transform.Scale.x, 0.05f, 0.05f, 20.0f);
+    }
+} // namespace FUIFunction
+
 namespace
 {
     void CameraBuild(Camera& InCamera)
@@ -49,10 +108,11 @@ namespace
             {
                 InCamera.ResetToDefaults();
             }
+            ImGui::NewLine();
         }
     }
 
-    void SceneBuild(AppContext& InContext)
+    void SceneBuild(FAppContext& InContext)
     {
         if (ImGui::CollapsingHeader("Scene Objects", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -82,17 +142,17 @@ namespace
 
             // Properties of the Selected item
             FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
-            ImGui::DragFloat3("Position", &Selectable.Transform.Position.x, 0.1f);
-            ImGui::DragFloat3("RotationEuler", &Selectable.Transform.RotationEuler.x, 1.0f);
+
+            FUIFunction::TransformObjectOnScene(InContext, Selectable);
+
+            // Ambient settings
+            ImGui::Separator();
+            ImGui::SliderFloat("Ambient Strength", &InContext.Settings.AmbientStrength, 0.0f, 1.0f);
 
             if (Selectable.ObjectType == EObjectType::EOT_Light)
             {
                 ImGui::ColorEdit3("Light Color", &Selectable.LightData.Color.x);
                 ImGui::Checkbox("Animate Light", &Selectable.LightData.bAnimateLight);
-
-                // Ambient
-                ImGui::Separator();
-                ImGui::SliderFloat("Ambient Strength", &InContext.Settings.AmbientStrength, 0.0f, 1.0f);
 
                 // Type of Lighting
                 const char* LightTypeNames[] = {"Direction", "Point", "Spot"};
@@ -135,10 +195,6 @@ namespace
                     }
                 }
             }
-            else if (Selectable.ObjectType == EObjectType::EOT_Cube)
-            {
-                ImGui::DragFloat3("Scale", &Selectable.Transform.Scale.x, 0.05f, 0.05f, 20.0f);
-            }
         }
 
         ImGui::Separator();
@@ -170,12 +226,11 @@ namespace
         }
         ImGui::EndDisabled();
     }
-
 } // namespace
 
 namespace FImGuiLayer
 {
-    void BuildUI(AppContext& InContext)
+    void BuildUI(FAppContext& InContext)
     {
         ImGui::Begin("Settings");
 
