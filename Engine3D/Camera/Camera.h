@@ -2,14 +2,14 @@
 #include "glad/gl.h"
 #include <glm/glm.hpp>
 
-enum class CameraMovementType
+enum class ECameraMovementType : glm::uint8_t
 {
-    CMT_Forward,
-    CMT_Backward,
-    CMT_Up,
-    CMT_Down,
-    CMT_Right,
-    CMT_Left
+    ECMT_Forward,
+    ECMT_Backward,
+    ECMT_Up,
+    ECMT_Down,
+    ECMT_Right,
+    ECMT_Left
 };
 
 constexpr GLfloat YAW = -90.0f;
@@ -34,7 +34,7 @@ private:
     void UpdateCameraVectors();
 
 public:
-    void ProcessKeyboard(CameraMovementType InDirection, GLfloat InDeltaTime);
+    void ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTime);
     void ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolean NewConstrainPitch = true);
     void ProcessMouseScroll(GLfloat InOffsetY);
 

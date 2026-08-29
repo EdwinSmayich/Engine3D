@@ -268,7 +268,7 @@ int main()
                 Light.Transform.Position.z = -(glm::cos(CurrentFrame * Speed) * 0.5f + 0.5f) * 7.0f;
             }
 
-            glm::mat4 LightModelMatrix = Light.Transform.Matrix();
+            glm::mat4 LightModelMatrix = Light.Transform.GetMatrix();
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
@@ -340,7 +340,12 @@ int main()
                 continue;
             }
             // World/Model transformation
-            glm::mat4 Model = Obj.Transform.Matrix();
+            GLfloat AngularSpeed = glm::radians(45.0f) * DeltaTime;
+            glm::quat DeltaRotation = glm::angleAxis(AngularSpeed, glm::vec3(1.0f, 1.0f, 0.0f));
+            Obj.Transform.Rotation = DeltaRotation * Obj.Transform.Rotation;
+            Obj.Transform.Rotation = glm::normalize(Obj.Transform.Rotation);
+
+            glm::mat4 Model = Obj.Transform.GetMatrix();
             CubeShader.SetMat4("uModel", Model);
 
             // Normal Matrix
@@ -371,7 +376,7 @@ int main()
 
             ImGuizmo::MODE Mode = (Ctx->GizmoMode == EGizmoMode::EGM_Local) ? ImGuizmo::LOCAL : ImGuizmo::WORLD;
 
-            glm::mat4 GizmoModel = TransformObj.Matrix();
+            glm::mat4 GizmoModel = TransformObj.GetMatrix();
             ImGuizmo::Manipulate(glm::value_ptr(View), glm::value_ptr(Projection), Operation, Mode, glm::value_ptr(GizmoModel));
 
             if (ImGuizmo::IsUsing())

@@ -45,37 +45,37 @@ void Camera::UpdateCameraVectors()
     Up = glm::normalize(glm::cross(Right, Front));
 }
 
-void Camera::ProcessKeyboard(CameraMovementType InDirection, GLfloat InDeltaTime)
+void Camera::ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTime)
 {
     const GLfloat Velocity = MovementSpeed * InDeltaTime;
     switch (InDirection)
     {
-        case CameraMovementType::CMT_Forward:
+        case ECameraMovementType::ECMT_Forward:
         {
             Position += Front * Velocity;
             break;
         }
-        case CameraMovementType::CMT_Backward:
+        case ECameraMovementType::ECMT_Backward:
         {
             Position -= Front * Velocity;
             break;
         }
-        case CameraMovementType::CMT_Up:
+        case ECameraMovementType::ECMT_Up:
         {
             Position += Up * Velocity;
             break;
         }
-        case CameraMovementType::CMT_Down:
+        case ECameraMovementType::ECMT_Down:
         {
             Position -= Up * Velocity;
             break;
         }
-        case CameraMovementType::CMT_Right:
+        case ECameraMovementType::ECMT_Right:
         {
             Position += Right * Velocity;
             break;
         }
-        case CameraMovementType::CMT_Left:
+        case ECameraMovementType::ECMT_Left:
         {
             Position -= Right * Velocity;
             break;
@@ -93,14 +93,8 @@ void Camera::ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolea
 
     if (NewConstrainPitch)
     {
-        if (Pitch > 89.0f)
-        {
-            Pitch = 89.0f;
-        }
-        if (Pitch < -89.0f)
-        {
-            Pitch = -89.0f;
-        }
+        Pitch = glm::min(Pitch, 89.0f);
+        Pitch = glm::max(Pitch, -89.0f);
     }
 
     UpdateCameraVectors();
@@ -109,14 +103,8 @@ void Camera::ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolea
 void Camera::ProcessMouseScroll(GLfloat InOffsetY)
 {
     Zoom -= InOffsetY * MovementSpeed * MouseSensitivity;
-    if (Zoom < 1.0f)
-    {
-        Zoom = 1.0f;
-    }
-    if (Zoom > 90.0f)
-    {
-        Zoom = 90.0f;
-    }
+    Zoom = glm::max(Zoom, 1.0f);
+    Zoom = glm::min(Zoom, 90.0f);
 }
 
 void Camera::SetPosition(const glm::vec3& NewPos)

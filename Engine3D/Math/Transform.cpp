@@ -9,7 +9,7 @@ void FTransform::UpdateRotationFromEuler()
     Rotation = QYaw * QPitch * QRoll;
 }
 
-glm::mat4 FTransform::Matrix() const
+glm::mat4 FTransform::GetMatrix() const
 {
     glm::mat4 T = glm::translate(glm::mat4(1.0f), Position);
     glm::mat4 R = glm::mat4_cast(Rotation);

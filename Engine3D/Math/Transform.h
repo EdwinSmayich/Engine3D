@@ -2,7 +2,6 @@
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/mat4x4.hpp>
-#include "glm/ext/matrix_transform.hpp"
 
 struct FTransform
 {
@@ -12,5 +11,5 @@ struct FTransform
     glm::vec3 Scale = glm::vec3(1.0f);
 
     void UpdateRotationFromEuler();
-    glm::mat4 Matrix() const;
+    glm::mat4 GetMatrix() const;
 };

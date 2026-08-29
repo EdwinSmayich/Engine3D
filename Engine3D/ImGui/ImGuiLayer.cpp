@@ -34,30 +34,12 @@ namespace FUIFunction
 
         ImGui::Separator();
         ImGui::DragFloat3("Position", &InObj.Transform.Position.x, 0.1f);
-
-        ImGui::Text("Rotate (delta):");
-        ImGui::Text("Quat: %.3f %.3f %.3f %.3f", InObj.Transform.Rotation.x, InObj.Transform.Rotation.y, InObj.Transform.Rotation.z,
-                    InObj.Transform.Rotation.w);
-
-        if (ImGui::Button("X +15"))
-        {
-            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Y +15"))
-        {
-            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        }
-        ImGui::SameLine();
-        if (ImGui::Button("Z +15"))
-        {
-            InObj.Transform.Rotation = InObj.Transform.Rotation * glm::angleAxis(glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        }
-        if (ImGui::DragFloat3("RotationEuler", &InObj.Transform.RotationEuler.x, 1.0f))
+        ImGui::Text("Quat:  W:%.3f  X:%.3f  Y:%.3f  Z:%.3f", InObj.Transform.Rotation.w, InObj.Transform.Rotation.x, InObj.Transform.Rotation.y,
+                    InObj.Transform.Rotation.z);
+        if (ImGui::DragFloat3("Rotate", &InObj.Transform.RotationEuler.x, 1.0f))
         {
             InObj.Transform.UpdateRotationFromEuler();
         }
-
         ImGui::DragFloat3("Scale", &InObj.Transform.Scale.x, 0.05f, 0.05f, 20.0f);
     }
 } // namespace FUIFunction
@@ -167,7 +149,7 @@ namespace
                 {
                     case LightType::ELT_Directional:
                     {
-                        ImGui::DragFloat3("Direction", &Selectable.LightData.Direction.x, 0.001f, -1.0f, 1.0f);
+                        ImGui::SliderFloat3("Direction", &Selectable.LightData.Direction.x, -1.0f, 1.0f);
                         break;
                     }
                     case LightType::ELT_Point:

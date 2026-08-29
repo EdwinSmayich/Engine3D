@@ -228,27 +228,27 @@ namespace FCallBack
         // Camera movement
         if (glfwGetKey(InWindow, GLFW_KEY_W) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Forward, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Forward, InDeltaTime);
         }
         if (glfwGetKey(InWindow, GLFW_KEY_S) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Backward, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Backward, InDeltaTime);
         }
         if (glfwGetKey(InWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Up, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Up, InDeltaTime);
         }
         if (glfwGetKey(InWindow, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Down, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Down, InDeltaTime);
         }
         if (glfwGetKey(InWindow, GLFW_KEY_D) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Right, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Right, InDeltaTime);
         }
         if (glfwGetKey(InWindow, GLFW_KEY_A) == GLFW_PRESS)
         {
-            InContext.MainCamera.ProcessKeyboard(CameraMovementType::CMT_Left, InDeltaTime);
+            InContext.MainCamera.ProcessKeyboard(ECameraMovementType::ECMT_Left, InDeltaTime);
         }
     }
 
