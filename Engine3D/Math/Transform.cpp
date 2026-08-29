@@ -9,6 +9,24 @@ void FTransform::UpdateRotationFromEuler()
     Rotation = QYaw * QPitch * QRoll;
 }
 
+void FTransform::SetPitch(GLfloat NewPitch)
+{
+    RotationEuler.x = NewPitch;
+    UpdateRotationFromEuler();
+}
+
+void FTransform::SetYaw(GLfloat NewYaw)
+{
+    RotationEuler.y = NewYaw;
+    UpdateRotationFromEuler();
+}
+
+void FTransform::SetRoll(GLfloat NewRoll)
+{
+    RotationEuler.z = NewRoll;
+    UpdateRotationFromEuler();
+}
+
 glm::mat4 FTransform::GetMatrix() const
 {
     glm::mat4 T = glm::translate(glm::mat4(1.0f), Position);

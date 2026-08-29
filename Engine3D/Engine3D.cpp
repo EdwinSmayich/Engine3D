@@ -290,7 +290,7 @@ int main()
         CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
 
         // Lighting
-        CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetPosition());
+        CubeShader.SetVec3("uViewPos", Ctx->MainCamera.GetTransform().Position);
 
         GLint LightIndex = 0;
         for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
@@ -341,9 +341,8 @@ int main()
             }
             // World/Model transformation
             GLfloat AngularSpeed = glm::radians(45.0f) * DeltaTime;
-            glm::quat DeltaRotation = glm::angleAxis(AngularSpeed, glm::vec3(1.0f, 1.0f, 0.0f));
+            glm::quat DeltaRotation = glm::normalize(glm::angleAxis(AngularSpeed, glm::vec3(1.0f, 1.0f, 0.0f)));
             Obj.Transform.Rotation = DeltaRotation * Obj.Transform.Rotation;
-            Obj.Transform.Rotation = glm::normalize(Obj.Transform.Rotation);
 
             glm::mat4 Model = Obj.Transform.GetMatrix();
             CubeShader.SetMat4("uModel", Model);

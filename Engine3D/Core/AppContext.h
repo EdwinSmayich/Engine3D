@@ -53,7 +53,7 @@ struct FAppContext
     std::vector<FSceneObject> SceneObjects
     {
         // Lights
-        {EObjectType::EOT_Light, {glm::vec3(-5.0f, 0.0f, 0.0f)}, 0.4f, {}},
+        {EObjectType::EOT_Light, {glm::vec3(-5.0f, 0.0f, 0.0f)}, 0.4f, {},},
         {EObjectType::EOT_Light, {glm::vec3(6.0f, 2.0f, 4.0f)}, 0.4f, {}},
         
         // Cubes

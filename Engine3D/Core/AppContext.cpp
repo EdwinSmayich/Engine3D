@@ -99,8 +99,8 @@ namespace FCallBack
                     glfwGetWindowSize(InWindow, &W, &H); // that exact current size
                     glm::vec3 Ray = FUI::ScreenToWorldRay(InPosX, InPosY, W, H, Ctx->Projection, Ctx->View);
 
-                    glm::vec3 O = Ctx->MainCamera.GetPosition();
-                    glm::vec3 N = Ctx->MainCamera.GetFrontVector();                          // the plane is facing the camera
+                    glm::vec3 O = Ctx->MainCamera.GetTransform().Position;
+                    glm::vec3 N = Ctx->MainCamera.GetTransform().GetFrontVector();           // the plane is facing the camera
                     glm::vec3 P = Ctx->SceneObjects[Ctx->SelectedObject].Transform.Position; // passes through the lamp
 
                     glm::vec3 Hit;
@@ -156,7 +156,7 @@ namespace FCallBack
         glfwGetWindowSize(InWindow, &Width, &Height);
 
         glm::vec3 Ray = FUI::ScreenToWorldRay(MouseX, MouseY, Width, Height, Ctx->Projection, Ctx->View);
-        glm::vec3 O = Ctx->MainCamera.GetPosition();
+        glm::vec3 O = Ctx->MainCamera.GetTransform().Position;
         int Hit = -1;
         float Nearest = std::numeric_limits<float>::max();
 

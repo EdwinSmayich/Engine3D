@@ -33,14 +33,27 @@ namespace FUIFunction
         }
 
         ImGui::Separator();
-        ImGui::DragFloat3("Position", &InObj.Transform.Position.x, 0.1f);
-        ImGui::Text("Quat:  W:%.3f  X:%.3f  Y:%.3f  Z:%.3f", InObj.Transform.Rotation.w, InObj.Transform.Rotation.x, InObj.Transform.Rotation.y,
-                    InObj.Transform.Rotation.z);
-        if (ImGui::DragFloat3("Rotate", &InObj.Transform.RotationEuler.x, 1.0f))
+        glm::vec3 ObjPos = InObj.Transform.Position;
+        if (ImGui::DragFloat3("Position", &ObjPos.x, 0.1f))
         {
+            InObj.Transform.Position = ObjPos;
+        }
+
+        glm::quat ObjQuatRot = InObj.Transform.Rotation;
+        ImGui::Text("Quat:  W:%.3f  X:%.3f  Y:%.3f  Z:%.3f", ObjQuatRot.x, ObjQuatRot.y, ObjQuatRot.z, ObjQuatRot.w);
+
+        glm::vec3 ObjEulerRot = InObj.Transform.RotationEuler;
+        if (ImGui::DragFloat3("Rotate", &ObjEulerRot.x, 1.0f))
+        {
+            InObj.Transform.RotationEuler = ObjEulerRot;
             InObj.Transform.UpdateRotationFromEuler();
         }
-        ImGui::DragFloat3("Scale", &InObj.Transform.Scale.x, 0.05f, 0.05f, 20.0f);
+
+        glm::vec3 ObjScale = InObj.Transform.Scale;
+        if (ImGui::DragFloat3("Scale", &ObjScale.x, 0.05f, 0.05f, 20.0f))
+        {
+            InObj.Transform.Scale = ObjScale;
+        }
     }
 } // namespace FUIFunction
 
@@ -50,10 +63,10 @@ namespace
     {
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            glm::vec3 Pos = InCamera.GetPosition();
+            glm::vec3 Pos = InCamera.GetTransform().Position;
             if (ImGui::DragFloat3("Camera Position", &Pos.x, 0.5f))
             {
-                InCamera.SetPosition(Pos);
+                InCamera.GetTransform().Position = Pos;
             }
 
             float Speed = InCamera.GetSpeed();
@@ -74,16 +87,16 @@ namespace
                 InCamera.SetFOV(FOV);
             }
 
-            float Pitch = InCamera.GetPitch();
+            float Pitch = InCamera.GetTransform().GetPitch();
             if (ImGui::SliderFloat("Pitch", &Pitch, -89.0f, 89.0f))
             {
-                InCamera.SetPitch(Pitch);
+                InCamera.GetTransform().SetPitch(Pitch);
             }
 
-            float Yaw = InCamera.GetYaw();
+            float Yaw = InCamera.GetTransform().GetYaw();
             if (ImGui::SliderFloat("Yaw", &Yaw, -180.0f, 180.0f))
             {
-                InCamera.SetYaw(Yaw);
+                InCamera.GetTransform().SetYaw(Yaw);
             }
 
             if (ImGui::Button("Reset Camera", ImVec2(-1.0f, 0.0f)))
@@ -182,7 +195,7 @@ namespace
         ImGui::Separator();
         if (ImGui::Button("Add Light"))
         {
-            glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
+            glm::vec3 SpawnPos = InContext.MainCamera.GetTransform().Position + InContext.MainCamera.GetTransform().GetFrontVector() * 10.0f;
             InContext.SceneObjects.push_back({EObjectType::EOT_Light, {SpawnPos}, 0.4f, {}});
             InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1; // Select a new one
         }
@@ -190,7 +203,7 @@ namespace
         ImGui::SameLine();
         if (ImGui::Button("Add Cube"))
         {
-            glm::vec3 SpawnPos = InContext.MainCamera.GetPosition() + InContext.MainCamera.GetFrontVector() * 10.0f;
+            glm::vec3 SpawnPos = InContext.MainCamera.GetTransform().Position + InContext.MainCamera.GetTransform().GetFrontVector() * 10.0f;
             InContext.SceneObjects.push_back({EObjectType::EOT_Cube, {SpawnPos}, 1.0f, {}});
             InContext.SelectedObject = static_cast<int>(InContext.SceneObjects.size()) - 1; // Select a new one
         }
