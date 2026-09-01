@@ -56,6 +56,32 @@ target_link_libraries(imgui PUBLIC
         glfw
         glad
 )
+# ---------------------------------------------------------------------------
+# Assimp (built from source in ThirdParty/assimp)
+# Turn off everything we don't need - a full build is slow and we only load
+# a couple of model formats.
+# ---------------------------------------------------------------------------
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)          # Static linking, without DLLs
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+
+add_subdirectory(ThirdParty/assimp)
+
+# Vendored third-party code is not ours to fix - silence its warnings so our own stay visible
+foreach(DEP assimp zlibstatic)
+    if (TARGET ${DEP})
+        target_compile_options(${DEP} PRIVATE -w)
+    endif()
+endforeach()
 
 # ---------------------------------------------------------------------------
 # Engine executable
@@ -84,7 +110,8 @@ target_link_libraries(Engine3D PRIVATE
         glfw
         glad
         glm::glm
-        imgui)
+        imgui
+        assimp)
 
 # Make Engine3D the startup project in generated Visual Studio solutions
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT Engine3D)

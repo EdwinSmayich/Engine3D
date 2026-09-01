@@ -20,6 +20,10 @@ obj/
 *.user
 *.suo
 
+# Assimp is cloned rather than vendored - it is far too large to track here.
+# See the README for the clone command.
+ThirdParty/assimp/
+
 # OS
 Thumbs.db
 .DS_Store

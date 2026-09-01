@@ -10,6 +10,8 @@
 #include "ImGuizmo.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <assimp/Importer.hpp>
+#include <assimp/version.h>
 
 #include <iostream>
 #include "Shader.h"
@@ -341,8 +343,8 @@ int main()
             }
             // World/Model transformation
             GLfloat AngularSpeed = glm::radians(45.0f) * DeltaTime;
-            glm::quat DeltaRotation = glm::normalize(glm::angleAxis(AngularSpeed, glm::vec3(1.0f, 1.0f, 0.0f)));
-            Obj.Transform.Rotation = DeltaRotation * Obj.Transform.Rotation;
+            glm::quat DeltaRotation = glm::angleAxis(AngularSpeed, glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
+            Obj.Transform.Rotation = glm::normalize(DeltaRotation * Obj.Transform.Rotation);
 
             glm::mat4 Model = Obj.Transform.GetMatrix();
             CubeShader.SetMat4("uModel", Model);
