@@ -14,10 +14,12 @@
 #include <assimp/version.h>
 
 #include <iostream>
-#include "Shader.h"
+#include "Models/Shader.h"
 #include "Core/AppContext.h"
 #include "glm/gtc/type_ptr.inl"
 #include "glm/gtx/matrix_decompose.hpp"
+
+#include "Models/Mesh.h"
 
 int main()
 {
@@ -78,51 +80,52 @@ int main()
     Shader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     // clang-format off
-    GLfloat Vertices[] = {
-        // Red facet
-        // Position           // Color            // Normal            // UV
-        -1.0f, -1.0f, 1.0f,   1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,    0.0f, 0.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,    1.0f, 0.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,    1.0f, 1.0f,
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 0.0f,   0.0f, 0.0f, 1.0f,    0.0f, 1.0f,
-  
-        // Green facet 
-        // Position           // Color            // Normal            // UV
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,   0.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,   1.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,   1.0f, 1.0f,
-        -1.0f, 1.0f, -1.0f,   0.0f, 1.0f, 0.0f,   0.0f, 0.0f, -1.0f,   0.0f, 1.0f,
-         
-        // Blue facet 
-        // Position           // Color            // Normal            // UV
-        1.0f, 1.0f, 1.0f,     0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,    0.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,    1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,    1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    0.0f, 0.0f, 1.0f,   1.0f, 0.0f, 0.0f,    0.0f, 1.0f,
-        
-        // Yellow facet  
-        // Position           // Color            // Normal            // UV
-        -1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   0.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   1.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   1.0f, 1.0f,
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 0.0f,   -1.0f, 0.0f, 0.0f,   0.0f, 1.0f,
-        
-        // Magenta facet  
-        // Position           // Color            // Normal            // UV
-        -1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,    0.0f, 0.0f,
-        -1.0f, 1.0f, -1.0f,   1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,    1.0f, 0.0f,
-        1.0f, 1.0f, -1.0f,    1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,    1.0f, 1.0f,
-        1.0f, 1.0f, 1.0f,     1.0f, 0.0f, 1.0f,   0.0f, 1.0f, 0.0f,    0.0f, 1.0f,
-        
-        // White facet  
-        // Position           // Color            // Normal            // UV
-        -1.0f, -1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,   0.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,   1.0f, 0.0f,
-        1.0f, -1.0f, -1.0f,   1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,   1.0f, 1.0f,
-        1.0f, -1.0f, 1.0f,    1.0f, 1.0f, 1.0f,   0.0f, -1.0f, 0.0f,   0.0f, 1.0f,
+    std::vector<FVertex> Vertices = 
+    { 
+      // Red facet
+      // Position           // Normal            // UV
+      {{-1.0f, -1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},
+      {{1.0f, -1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 0.0f}},
+      {{1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+      {{-1.0f, 1.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+
+      // Green facet
+      // Position           // Normal            // UV
+      {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f}},
+      {{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f}},
+      {{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {1.0f, 1.0f}},
+      {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f}},
+
+      // Blue facet
+      // Position           // Normal            // UV
+      {{1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+      {{1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+      {{1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+      {{1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+      // Yellow facet
+      // Position          // Normal            // UV
+      {{-1.0f, 1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+      {{-1.0f, 1.0f, -1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+      {{-1.0f, -1.0f, -1.0f}, {-1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},
+      {{-1.0f, -1.0f, 1.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 1.0f}},
+
+      // Magenta facet
+      // Position          // Normal            // UV
+      {{-1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+      {{-1.0f, 1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+      {{1.0f, 1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 1.0f}},
+      {{1.0f, 1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f}},
+
+      // White facet
+      // Position          // Normal            // UV
+      {{-1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 0.0f}},
+      {{-1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 0.0f}},
+      {{1.0f, -1.0f, -1.0f}, {0.0f, -1.0f, 0.0f}, {1.0f, 1.0f}},
+      {{1.0f, -1.0f, 1.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, 1.0f}}
     };
     
-    GLuint Indices[] = {
+    std::vector<GLuint> Indices = {
         // Front
         0,1,2,
         0,2,3,
@@ -149,52 +152,15 @@ int main()
     };
     // clang-format on
 
-    // Vertex Array
-    GLuint CubesVAO = 0;
-    glGenVertexArrays(1, &CubesVAO);
-    glBindVertexArray(CubesVAO);
-
-    // Vertex Buffer
-    GLuint VBO = 0;
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertices), Vertices, GL_STATIC_DRAW);
-
-    GLuint CubesEBO = 0;
-    glGenBuffers(1, &CubesEBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubesEBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
-
-    // Position attribute (location = 0)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), FCallBack::BufferOffset(0));
-    glEnableVertexAttribArray(0);
-
-    // Normal attribute (location = 1)
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), FCallBack::BufferOffset(6 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
-    // Texture attribute (location = 2)
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), FCallBack::BufferOffset(9 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(2);
+    // Geometry shared by every object in the scene. Each Mesh owns its buffers
+    // and frees them in its destructor, so nothing has to be cleaned up by hand
+    Mesh Cubes(Vertices, Indices);
+    Mesh LightsMesh(Vertices, Indices);
 
     // Create textures
     GLuint DiffuseMap = FTexture::LoadTexture(TEXTURE_DIR "/Container2.png");
     GLuint SpecularMap = FTexture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png");
     GLuint EmissionMap = FTexture::LoadTexture(TEXTURE_DIR "/Matrix.jpg");
-
-    // Lighting scene
-    GLuint LightVAO = 0;
-    glGenVertexArrays(1, &LightVAO);
-    glBindVertexArray(LightVAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, CubesEBO);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 11 * sizeof(GLfloat), FCallBack::BufferOffset(0));
-    glEnableVertexAttribArray(0);
-
-    // Unbind VAO
-    glBindVertexArray(0);
 
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
@@ -249,7 +215,6 @@ int main()
         LightingCubeShader.SetMat4("uView", View);
 
         // Render light cubes
-        glBindVertexArray(LightVAO);
         for (size_t i = 0; i < Ctx->SceneObjects.size(); ++i)
         {
             if (Ctx->SceneObjects[i].ObjectType != EObjectType::EOT_Light)
@@ -274,8 +239,7 @@ int main()
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
-            // Draw light cubes
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+            LightsMesh.Draw();
         }
 
         // Cubes/Containers properties
@@ -334,7 +298,6 @@ int main()
         glBindTexture(GL_TEXTURE_2D, EmissionMap);
 
         // Render cubes
-        glBindVertexArray(CubesVAO);
         for (FSceneObject& Obj : Ctx->SceneObjects)
         {
             if (Obj.ObjectType != EObjectType::EOT_Cube)
@@ -353,7 +316,7 @@ int main()
             glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
-            glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+            Cubes.Draw();
         }
 
         // ImGuizmo render
@@ -400,11 +363,6 @@ int main()
         glfwSwapBuffers(Window);
         glfwPollEvents();
     }
-
-    glDeleteBuffers(1, &VBO);
-    glDeleteVertexArrays(1, &CubesVAO);
-    glDeleteVertexArrays(1, &LightVAO);
-    glDeleteBuffers(1, &CubesEBO);
 
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

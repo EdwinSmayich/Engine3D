@@ -87,8 +87,10 @@ endforeach()
 # Engine executable
 # ---------------------------------------------------------------------------
 add_executable(Engine3D Engine3D/Engine3D.cpp
-        Engine3D/Shader.h
-        Engine3D/Shader.cpp
+        Engine3D/Models/Shader.h
+        Engine3D/Models/Shader.cpp
+        Engine3D/Models/Mesh.h
+        Engine3D/Models/Mesh.cpp
         Textures/stb_image.h
         Textures/std_image.cpp
         Engine3D/Camera/Camera.h
