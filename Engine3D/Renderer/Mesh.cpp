@@ -1,25 +1,15 @@
 #include "Mesh.h"
-
 #include "Shader.h"
 
-AMesh::AMesh(std::vector<FVertex> InVertices, std::vector<GLuint> InIndices /*, std::vector<FTexture> InTextures*/)
+FMesh::FMesh(std::vector<FVertex> InVertices, std::vector<GLuint> InIndices, std::vector<FTexture> InTextures)
     : Vertices(std::move(InVertices)),
-      Indices(std::move(InIndices))
-// Textures(std::move(InTextures))
+      Indices(std::move(InIndices)),
+      Textures(std::move(InTextures))
 {
     SetupMesh();
 }
 
-AMesh::~AMesh()
-{
-    // Vertex arrays and buffers live in separate name spaces,
-    // so each kind has to go back through its own deleter
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteVertexArrays(1, &VAO);
-}
-
-AMesh::AMesh(AMesh&& InOther) noexcept
+FMesh::FMesh(FMesh&& InOther) noexcept
     : Vertices(std::move(InOther.Vertices)),
       Indices(std::move(InOther.Indices)),
       Textures(std::move(InOther.Textures)),
@@ -34,7 +24,16 @@ AMesh::AMesh(AMesh&& InOther) noexcept
     InOther.EBO = 0;
 }
 
-AMesh& AMesh::operator=(AMesh&& InOther) noexcept
+FMesh::~FMesh()
+{
+    // Vertex arrays and buffers live in separate name spaces,
+    // so each kind has to go back through its own deleter
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    glDeleteVertexArrays(1, &VAO);
+}
+
+FMesh& FMesh::operator=(FMesh&& InOther) noexcept
 {
     if (this != &InOther)
     {
@@ -58,16 +57,16 @@ AMesh& AMesh::operator=(AMesh&& InOther) noexcept
     return *this;
 }
 
-void AMesh::Draw(const AShader& InShader) const
+void FMesh::Draw(const FShader& InShader) const
 {
-    GLuint DiffuseNr = 1;
-    for (GLuint i = 0; i < Textures.size(); ++i)
+    for (GLint Unit = 0; Unit < static_cast<GLint>(Textures.size()); ++Unit)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
-        std::string Number = std::to_string(DiffuseNr++);
-        InShader.SetInt("uMaterial." + Textures[i].Type + Number, i);
-        glBindTexture(GL_TEXTURE_2D, Textures[i].Id);
+        glActiveTexture(GL_TEXTURE0 + Unit);
+        glBindTexture(GL_TEXTURE_2D, Textures[Unit].Id);
+        InShader.SetInt(GetUniformName(Textures[Unit].Type), Unit);
     }
+
+    glActiveTexture(GL_TEXTURE0);
 
     // Draw mesh
     glBindVertexArray(VAO);
@@ -75,7 +74,28 @@ void AMesh::Draw(const AShader& InShader) const
     glBindVertexArray(0);
 }
 
-void AMesh::SetupMesh()
+const GLchar* FMesh::GetUniformName(ETextureType InType)
+{
+    switch (InType)
+    {
+        case ETextureType::ETT_Diffuse:
+        {
+            return "uMaterial.Diffuse";
+        }
+        case ETextureType::ETT_Specular:
+        {
+            return "uMaterial.Specular";
+        }
+        case ETextureType::ETT_Emission:
+        {
+            return "uMaterial.Emission";
+        }
+    }
+
+    return "";
+}
+
+void FMesh::SetupMesh()
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

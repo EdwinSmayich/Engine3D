@@ -1,12 +1,13 @@
 #pragma once
 #include "glad/gl.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <glm/vec3.hpp>
 #include <glm/vec2.hpp>
 
-class AShader;
+class FShader;
 
 // One vertex exactly as it is stored in the vertex buffer.
 // The fields sit back to back in memory, so a std::vector<FVertex> is byte for
@@ -18,27 +19,36 @@ struct FVertex
     glm::vec2 TexCoords;
 };
 
+enum class ETextureType : std::uint8_t
+{
+    ETT_Diffuse,
+    ETT_Specular,
+    ETT_Emission,
+};
+
 struct FTexture
 {
-    GLuint Id;
-    std::string Type;
-    std::string Path;
+    GLuint Id = 0;
+    ETextureType Type = ETextureType::ETT_Diffuse;
+    std::string Path; // Where it was loaded from - lets the loader skip files it already uploaded
 };
 
 // A single chunk of geometry that owns its own VAO/VBO/EBO.
 // A model is built out of several of these, usually one per material.
-class AMesh
+class FMesh
 {
 public:
-    AMesh(std::vector<FVertex> InVertices, std::vector<GLuint> InIndices /*,std::vector<FTexture> InTextures*/);
-    AMesh(const AMesh&) = delete;
-    AMesh& operator=(const AMesh&) = delete;
-    AMesh(AMesh&& InOther) noexcept;
-    AMesh& operator=(AMesh&& InOther) noexcept;
+    FMesh(std::vector<FVertex> InVertices, std::vector<GLuint> InIndices, std::vector<FTexture> InTextures);
+    FMesh(const FMesh&) = delete;
+    FMesh& operator=(const FMesh&) = delete;
+    FMesh(FMesh&& InOther) noexcept;
+    FMesh& operator=(FMesh&& InOther) noexcept;
 
-    ~AMesh();
+    ~FMesh();
 
-    void Draw(const AShader& InShader) const;
+    void Draw(const FShader& InShader) const;
+
+    static const GLchar* GetUniformName(ETextureType InType);
 
 private:
     // Uploads the geometry to the GPU and describes how to read it back

@@ -76,8 +76,8 @@ int main()
     glEnable(GL_DEPTH_TEST);
 
     // Create shader program
-    AShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
-    AShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
+    FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
+    FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     // clang-format off
     std::vector<FVertex> Vertices = 
@@ -151,19 +151,18 @@ int main()
         20,22,23
     };
     
-    //std::vector<FTexture> Textures = {};
+    std::vector<FTexture> Textures = {
+        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),          ETextureType::ETT_Diffuse },
+        {Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png"), ETextureType::ETT_Specular },
+        {Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg"),              ETextureType::ETT_Emission }
+    };
     // clang-format on
 
-    // Geometry shared by every object in the scene. Each Mesh owns its buffers
-    // and frees them in its destructor, so nothing has to be cleaned up by hand
-    std::vector<AMesh> Meshes;
-    Meshes.emplace_back(Vertices, Indices);
-    // AMesh SceneMesh(Vertices, Indices);
-
-    // Create textures
-    GLuint DiffuseMap = Texture::LoadTexture(TEXTURE_DIR "/Container2.png");
-    GLuint SpecularMap = Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png");
-    GLuint EmissionMap = Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg");
+    // The same cube geometry, but only the containers carry a material.
+    // Each Mesh owns its buffers and frees them in its destructor,
+    // so nothing has to be cleaned up by hand
+    FMesh ContainerMesh(Vertices, Indices, Textures);
+    FMesh LightCubeMesh(Vertices, Indices, {});
 
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
@@ -242,7 +241,7 @@ int main()
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
-            Meshes[0].Draw(LightingCubeShader);
+            LightCubeMesh.Draw(LightingCubeShader);
         }
 
         // Cubes/Containers properties
@@ -253,9 +252,6 @@ int main()
 
         // Material properties
         const FMaterial& Material = Ctx->Materials.Get("Emerald");
-        CubeShader.SetInt("uMaterial.Diffuse", 0);
-        CubeShader.SetInt("uMaterial.Specular", 1);
-        CubeShader.SetInt("uMaterial.Emission", 2);
         CubeShader.SetFloat("uMaterial.Shininess", Material.Shininess);
 
         // Lighting
@@ -288,18 +284,6 @@ int main()
         CubeShader.SetInt("uLightCount", LightIndex);
         CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.AmbientStrength);
 
-        // Bind Diffuse map
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, DiffuseMap);
-
-        // Bind Specular map
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, SpecularMap);
-
-        // Bind emission map
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, EmissionMap);
-
         // Render cubes
         for (USceneObject& Obj : Ctx->SceneObjects)
         {
@@ -319,7 +303,7 @@ int main()
             glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
-            Meshes[0].Draw(CubeShader);
+            ContainerMesh.Draw(CubeShader);
         }
 
         // ImGuizmo render
