@@ -34,10 +34,10 @@ struct FAppContext
     glm::mat4 View;
 
     // ImGui Entities
-    DebugSettings Settings;
+    FDebugSettings Settings;
 
     // Camera
-    Camera MainCamera;
+    ACamera MainCamera;
 
     // Screen settings
     float LastX = 0.0f;
@@ -46,11 +46,11 @@ struct FAppContext
     bool bCursorModeActive = false; // false means that the mouse is hidden (we're controlling the camera)
 
     // Material
-    MaterialLibrary Materials;
+    FMaterialLibrary Materials;
 
     // Scene
     // clang-format off
-    std::vector<FSceneObject> SceneObjects
+    std::vector<USceneObject> SceneObjects
     {
         // Lights
         {EObjectType::EOT_Light, {glm::vec3(-5.0f, 0.0f, 0.0f)}, 0.4f, {},},
@@ -69,12 +69,12 @@ struct FAppContext
     void ResetAppContextToDefaults();
 };
 
-namespace FTexture
+namespace Texture
 {
     GLuint LoadTexture(const char* InPath);
-} // namespace FTexture
+} // namespace Texture
 
-namespace FCallBack
+namespace CallBack
 {
     const GLvoid* BufferOffset(size_t InBytes);
     void FrameBufferSizeCallback(GLFWwindow*, GLint InWidth, GLint InHeight);
@@ -82,9 +82,9 @@ namespace FCallBack
     void MouseButtonCallback(GLFWwindow* InWindow, GLint InButton, GLint InAction, GLint /*Mods*/);
     void ScrollCallback(GLFWwindow* InWindow, GLdouble, GLdouble InOffsetY);
     void ProcessInput(GLFWwindow* InWindow, GLfloat InDeltaTime, FAppContext& InContext);
-} // namespace FCallBack
+} // namespace CallBack
 
-namespace FUI
+namespace UI
 {
     glm::vec3 ScreenToWorldRay(GLdouble InMouseX, GLdouble InMouseY, GLint InWidth, GLint InHeight, const glm::mat4& InProj, const glm::mat4& InView);
-} // namespace FUI
+} // namespace UI

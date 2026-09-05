@@ -1,6 +1,6 @@
 ﻿#include "Camera.h"
 
-Camera::Camera(const glm::vec3& InPos)
+ACamera::ACamera(const glm::vec3& InPos)
     : MovementSpeed(SPEED),
       MouseSensitivity(SENSITIVITY),
       Fov(ZOOM)
@@ -9,7 +9,7 @@ Camera::Camera(const glm::vec3& InPos)
     Transform.UpdateRotationFromEuler();
 }
 
-void Camera::ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTime)
+void ACamera::ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTime)
 {
     glm::vec3 CameraPos = Transform.Position;
     const GLfloat Velocity = MovementSpeed * InDeltaTime;
@@ -51,7 +51,7 @@ void Camera::ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTim
     Transform.Position = CameraPos;
 }
 
-void Camera::ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolean NewConstrainPitch)
+void ACamera::ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolean NewConstrainPitch)
 {
     InOffsetX *= MouseSensitivity;
     InOffsetY *= MouseSensitivity;
@@ -68,19 +68,19 @@ void Camera::ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolea
     Transform.UpdateRotationFromEuler();
 }
 
-void Camera::ProcessMouseScroll(GLfloat InOffsetY)
+void ACamera::ProcessMouseScroll(GLfloat InOffsetY)
 {
     Fov -= InOffsetY * MovementSpeed * MouseSensitivity;
     Fov = glm::max(Fov, 1.0f);
     Fov = glm::min(Fov, 90.0f);
 }
 
-void Camera::ResetToDefaults()
+void ACamera::ResetToDefaults()
 {
-    *this = Camera{};
+    *this = ACamera{};
 }
 
-glm::mat4 Camera::GetViewMatrix() const
+glm::mat4 ACamera::GetViewMatrix() const
 {
     return glm::inverse(Transform.GetMatrix());
 }

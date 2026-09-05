@@ -10,7 +10,7 @@ enum class EObjectType : std::uint8_t
     EOT_Cube
 };
 
-struct FSceneObject
+struct USceneObject
 {
     EObjectType ObjectType = EObjectType::EOT_Light;
     FTransform Transform;

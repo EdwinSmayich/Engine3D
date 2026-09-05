@@ -2,8 +2,8 @@
 
 struct FAppContext;
 
-namespace FImGuiLayer
+namespace ImGuiLayer
 {
     void BuildUI(FAppContext& InContext);
 
-} // namespace FImGuiLayer
+} // namespace ImGuiLayer

@@ -14,12 +14,12 @@
 #include <assimp/version.h>
 
 #include <iostream>
-#include "Models/Shader.h"
+#include "Renderer/Shader.h"
 #include "Core/AppContext.h"
 #include "glm/gtc/type_ptr.inl"
 #include "glm/gtx/matrix_decompose.hpp"
 
-#include "Models/Mesh.h"
+#include "Renderer/Mesh.h"
 
 int main()
 {
@@ -57,10 +57,10 @@ int main()
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(Window, FCallBack::FrameBufferSizeCallback);
-    glfwSetCursorPosCallback(Window, FCallBack::MouseCursorPosCallback);
-    glfwSetMouseButtonCallback(Window, FCallBack::MouseButtonCallback);
-    glfwSetScrollCallback(Window, FCallBack::ScrollCallback);
+    glfwSetFramebufferSizeCallback(Window, CallBack::FrameBufferSizeCallback);
+    glfwSetCursorPosCallback(Window, CallBack::MouseCursorPosCallback);
+    glfwSetMouseButtonCallback(Window, CallBack::MouseButtonCallback);
+    glfwSetScrollCallback(Window, CallBack::ScrollCallback);
 
     // Init ImGui
     IMGUI_CHECKVERSION();
@@ -71,13 +71,13 @@ int main()
 
     GLint FbWidth = 0, FbHeight = 0;
     glfwGetFramebufferSize(Window, &FbWidth, &FbHeight);
-    FCallBack::FrameBufferSizeCallback(Window, FbWidth, FbHeight);
+    CallBack::FrameBufferSizeCallback(Window, FbWidth, FbHeight);
 
     glEnable(GL_DEPTH_TEST);
 
     // Create shader program
-    Shader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
-    Shader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
+    AShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
+    AShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     // clang-format off
     std::vector<FVertex> Vertices = 
@@ -150,17 +150,20 @@ int main()
         20,21,22,
         20,22,23
     };
+    
+    //std::vector<FTexture> Textures = {};
     // clang-format on
 
     // Geometry shared by every object in the scene. Each Mesh owns its buffers
     // and frees them in its destructor, so nothing has to be cleaned up by hand
-    Mesh Cubes(Vertices, Indices);
-    Mesh LightsMesh(Vertices, Indices);
+    std::vector<AMesh> Meshes;
+    Meshes.emplace_back(Vertices, Indices);
+    // AMesh SceneMesh(Vertices, Indices);
 
     // Create textures
-    GLuint DiffuseMap = FTexture::LoadTexture(TEXTURE_DIR "/Container2.png");
-    GLuint SpecularMap = FTexture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png");
-    GLuint EmissionMap = FTexture::LoadTexture(TEXTURE_DIR "/Matrix.jpg");
+    GLuint DiffuseMap = Texture::LoadTexture(TEXTURE_DIR "/Container2.png");
+    GLuint SpecularMap = Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png");
+    GLuint EmissionMap = Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg");
 
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
@@ -179,7 +182,7 @@ int main()
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
         ImGuizmo::BeginFrame();
-        FImGuiLayer::BuildUI(*Ctx);
+        ImGuiLayer::BuildUI(*Ctx);
 
         if (Ctx->Settings.bWireframe)
         {
@@ -191,7 +194,7 @@ int main()
         }
 
         // Input
-        FCallBack::ProcessInput(Window, DeltaTime, Context);
+        CallBack::ProcessInput(Window, DeltaTime, Context);
 
         glClearColor(Ctx->Settings.BackgroundColor[0], Ctx->Settings.BackgroundColor[1], Ctx->Settings.BackgroundColor[2], 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -222,7 +225,7 @@ int main()
                 continue;
             }
 
-            FSceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
+            USceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
             bool bSelected = (i == Ctx->SelectedObject);
 
             GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger
@@ -239,7 +242,7 @@ int main()
             LightModelMatrix = glm::scale(LightModelMatrix, glm::vec3(LampScale));
             LightingCubeShader.SetMat4("uModel", LightModelMatrix);
 
-            LightsMesh.Draw();
+            Meshes[0].Draw(LightingCubeShader);
         }
 
         // Cubes/Containers properties
@@ -249,7 +252,7 @@ int main()
         CubeShader.SetMat4("uView", View);
 
         // Material properties
-        const Material& Material = Ctx->Materials.Get("Emerald");
+        const FMaterial& Material = Ctx->Materials.Get("Emerald");
         CubeShader.SetInt("uMaterial.Diffuse", 0);
         CubeShader.SetInt("uMaterial.Specular", 1);
         CubeShader.SetInt("uMaterial.Emission", 2);
@@ -266,7 +269,7 @@ int main()
                 continue;
             }
 
-            FSceneObject& Light = Ctx->SceneObjects[i];
+            USceneObject& Light = Ctx->SceneObjects[i];
             std::string Base = "uLights[" + std::to_string(LightIndex) + "]";
             CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
             CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
@@ -298,7 +301,7 @@ int main()
         glBindTexture(GL_TEXTURE_2D, EmissionMap);
 
         // Render cubes
-        for (FSceneObject& Obj : Ctx->SceneObjects)
+        for (USceneObject& Obj : Ctx->SceneObjects)
         {
             if (Obj.ObjectType != EObjectType::EOT_Cube)
             {
@@ -316,7 +319,7 @@ int main()
             glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
-            Cubes.Draw();
+            Meshes[0].Draw(CubeShader);
         }
 
         // ImGuizmo render

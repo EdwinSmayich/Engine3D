@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-struct DebugSettings
+struct FDebugSettings
 {
     // Render
     bool bWireframe = false;

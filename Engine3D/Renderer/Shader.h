@@ -6,7 +6,7 @@
 /**
  * @brief Shader class for working with OpenGL shaders.
  */
-class Shader
+class AShader
 {
 public:
     /**
@@ -16,25 +16,25 @@ public:
      * @param InVertexPath Path to the vertex shader.
      * @param InFragmentPath Path to the fragment shader.
      */
-    explicit Shader(const GLchar* InVertexPath, const GLchar* InFragmentPath);
+    explicit AShader(const GLchar* InVertexPath, const GLchar* InFragmentPath);
 
     /**
      * @brief Destructor for the Shader class.
      * Cleans up OpenGL shader resources when the object is destroyed.
      */
-    ~Shader();
+    ~AShader();
 
     /**
      * @brief Deleted copy constructor.
      * Prevents copying of shader objects to avoid resource management issues.
      */
-    Shader(const Shader&) = delete;
+    AShader(const AShader&) = delete;
 
     /**
      * @brief Deleted assignment operator.
      * Prevents assignment of shader objects to avoid resource management issues.
      */
-    Shader& operator=(const Shader&) = delete;
+    AShader& operator=(const AShader&) = delete;
 
     /**
      * @brief Activates the shader program.

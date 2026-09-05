@@ -3,9 +3,9 @@
 #include <imgui.h>
 #include "../Core/AppContext.h"
 
-namespace FUIFunction
+namespace UIFunction
 {
-    void TransformObjectOnScene(FAppContext& InContext, FSceneObject& InObj)
+    void TransformObjectOnScene(FAppContext& InContext, USceneObject& InObj)
     {
         ImGui::Text("Gizmo:");
         if (ImGui::RadioButton("Move", InContext.GizmoOperation == EGizmoOperation::EGO_Translate))
@@ -55,11 +55,11 @@ namespace FUIFunction
             InObj.Transform.Scale = ObjScale;
         }
     }
-} // namespace FUIFunction
+} // namespace UIFunction
 
 namespace
 {
-    void CameraBuild(Camera& InCamera)
+    void CameraBuild(ACamera& InCamera)
     {
         if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
         {
@@ -136,9 +136,9 @@ namespace
             ImGui::EndChild();
 
             // Properties of the Selected item
-            FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
+            USceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
 
-            FUIFunction::TransformObjectOnScene(InContext, Selectable);
+            UIFunction::TransformObjectOnScene(InContext, Selectable);
 
             // Ambient settings
             ImGui::Separator();
@@ -155,23 +155,23 @@ namespace
                 int CurrentType = static_cast<int>(Selectable.LightData.LightingType);
                 if (ImGui::Combo("Type", &CurrentType, LightTypeNames, IM_ARRAYSIZE(LightTypeNames)))
                 {
-                    Selectable.LightData.LightingType = static_cast<LightType>(CurrentType);
+                    Selectable.LightData.LightingType = static_cast<ELightType>(CurrentType);
                 }
 
                 switch (Selectable.LightData.LightingType)
                 {
-                    case LightType::ELT_Directional:
+                    case ELightType::ELT_Directional:
                     {
                         ImGui::SliderFloat3("Direction", &Selectable.LightData.Direction.x, -1.0f, 1.0f);
                         break;
                     }
-                    case LightType::ELT_Point:
+                    case ELightType::ELT_Point:
                     {
                         ImGui::DragFloat("Linear", &Selectable.LightData.Linear, 0.001f, 0.0f, 1.0f);
                         ImGui::DragFloat("Quadratic", &Selectable.LightData.Quadratic, 0.0001f, 0.0f, 1.0f);
                         break;
                     }
-                    case LightType::ELT_Spot:
+                    case ELightType::ELT_Spot:
                     {
                         GLfloat InnerAngle = glm::degrees(glm::acos(Selectable.LightData.InnerCutoff));
                         GLfloat OuterAngle = glm::degrees(glm::acos(Selectable.LightData.OuterCutoff));
@@ -223,7 +223,7 @@ namespace
     }
 } // namespace
 
-namespace FImGuiLayer
+namespace ImGuiLayer
 {
     void BuildUI(FAppContext& InContext)
     {
@@ -255,4 +255,4 @@ namespace FImGuiLayer
 
         ImGui::End();
     }
-} // namespace FImGuiLayer
+} // namespace ImGuiLayer

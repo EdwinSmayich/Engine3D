@@ -2,7 +2,7 @@
 #include <glm/vec3.hpp>
 #include <glm/trigonometric.hpp>
 
-enum class LightType : std::uint8_t
+enum class ELightType : std::uint8_t
 {
     ELT_Directional = 0,
     ELT_Point = 1,
@@ -27,5 +27,5 @@ struct FLight
 
     bool bAnimateLight = false;
 
-    LightType LightingType = LightType::ELT_Point;
+    ELightType LightingType = ELightType::ELT_Point;
 };

@@ -1,7 +1,7 @@
 ﻿#include "Math.h"
 #include "glm/detail/func_geometric.inl"
 
-namespace FMath
+namespace Math
 {
     // clang-format off
     bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT)
@@ -43,4 +43,4 @@ namespace FMath
         return true;
     }
     // clang-format on
-} // namespace FMath
+} // namespace Math

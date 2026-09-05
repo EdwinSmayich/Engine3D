@@ -1,13 +1,16 @@
 #include "Mesh.h"
 
-Mesh::Mesh(const std::vector<FVertex>& InVertices, const std::vector<GLuint>& InIndices)
-    : Vertices(InVertices),
-      Indices(InIndices)
+#include "Shader.h"
+
+AMesh::AMesh(std::vector<FVertex> InVertices, std::vector<GLuint> InIndices /*, std::vector<FTexture> InTextures*/)
+    : Vertices(std::move(InVertices)),
+      Indices(std::move(InIndices))
+// Textures(std::move(InTextures))
 {
     SetupMesh();
 }
 
-Mesh::~Mesh()
+AMesh::~AMesh()
 {
     // Vertex arrays and buffers live in separate name spaces,
     // so each kind has to go back through its own deleter
@@ -16,14 +19,63 @@ Mesh::~Mesh()
     glDeleteVertexArrays(1, &VAO);
 }
 
-void Mesh::Draw() const
+AMesh::AMesh(AMesh&& InOther) noexcept
+    : Vertices(std::move(InOther.Vertices)),
+      Indices(std::move(InOther.Indices)),
+      Textures(std::move(InOther.Textures)),
+      VAO(InOther.VAO),
+      VBO(InOther.VBO),
+      EBO(InOther.EBO)
 {
+    // Zero out the source so its destructor has nothing left to free.
+    // Deleting name 0 is defined as a no-op, which is why it is the empty handle
+    InOther.VAO = 0;
+    InOther.VBO = 0;
+    InOther.EBO = 0;
+}
+
+AMesh& AMesh::operator=(AMesh&& InOther) noexcept
+{
+    if (this != &InOther)
+    {
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &EBO);
+        glDeleteVertexArrays(1, &VAO);
+
+        Vertices = std::move(InOther.Vertices);
+        Indices = std::move(InOther.Indices);
+        Textures = std::move(InOther.Textures);
+
+        VAO = InOther.VAO;
+        VBO = InOther.VBO;
+        EBO = InOther.EBO;
+
+        InOther.VAO = 0;
+        InOther.VBO = 0;
+        InOther.EBO = 0;
+    }
+
+    return *this;
+}
+
+void AMesh::Draw(const AShader& InShader) const
+{
+    GLuint DiffuseNr = 1;
+    for (GLuint i = 0; i < Textures.size(); ++i)
+    {
+        glActiveTexture(GL_TEXTURE0 + i);
+        std::string Number = std::to_string(DiffuseNr++);
+        InShader.SetInt("uMaterial." + Textures[i].Type + Number, i);
+        glBindTexture(GL_TEXTURE_2D, Textures[i].Id);
+    }
+
+    // Draw mesh
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(Indices.size()), GL_UNSIGNED_INT, nullptr);
     glBindVertexArray(0);
 }
 
-void Mesh::SetupMesh()
+void AMesh::SetupMesh()
 {
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);

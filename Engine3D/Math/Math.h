@@ -2,7 +2,7 @@
 #include "glad/gl.h"
 #include "glm/vec3.hpp"
 
-namespace FMath
+namespace Math
 {
     /*
      * OC — The vector from the camera to the center of the sphere.
@@ -13,4 +13,4 @@ namespace FMath
      */
     bool RayHitsSphere(glm::vec3 InO, glm::vec3 InD, glm::vec3 InC, GLfloat InR, GLfloat& OutT);
     bool RayHitsPlane(glm::vec3 InO, glm::vec3 InD, glm::vec3 InPlanePoint, glm::vec3 InPlaneNormal, glm::vec3& OutHit);
-}; // namespace FMath
+}; // namespace Math

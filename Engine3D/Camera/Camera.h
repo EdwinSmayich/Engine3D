@@ -18,10 +18,10 @@ constexpr GLfloat SENSITIVITY = 0.1f;
 constexpr GLfloat ZOOM = 45.0f;
 
 // clang-format off
-class Camera
+class ACamera
 {
 public:
-    Camera(const glm::vec3& InPos = glm::vec3(0.0f, 0.0f, 20.0f));
+    ACamera(const glm::vec3& InPos = glm::vec3(0.0f, 0.0f, 20.0f));
     
     void ProcessKeyboard(ECameraMovementType InDirection, GLfloat InDeltaTime);
     void ProcessMouseMovement(GLfloat InOffsetX, GLfloat InOffsetY, GLboolean NewConstrainPitch = true);

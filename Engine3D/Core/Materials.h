@@ -5,7 +5,7 @@
 
 constexpr int NUM_CUBES = 10;
 
-struct Material
+struct FMaterial
 {
     glm::vec3 Ambient;
     glm::vec3 Diffuse;
@@ -13,10 +13,10 @@ struct Material
     float Shininess;
 };
 
-struct MaterialLibrary
+struct FMaterialLibrary
 {
     // clang-format off
-    MaterialLibrary() 
+    FMaterialLibrary()
     : MaterialsMap{               // Ambient                                                    // Diffuse                                          // Specular                                            // Shininess
         {"Emerald",      {{0.0215f, 0.1745f, 0.0215f},      {0.07568f, 0.61424f, 0.07568f},   {0.633f, 0.727811f, 0.633f},            0.6f * 128.0f}},
         {"Jade",         {{0.135f, 0.2225f, 0.1575f},       {0.54f, 0.89f, 0.63f},            {0.316228f, 0.316228f, 0.316228f},      0.1f * 128.0f}},
@@ -48,7 +48,7 @@ struct MaterialLibrary
     } {}
     // clang-format on
 
-    const Material& Get(const std::string& InName) const
+    const FMaterial& Get(const std::string& InName) const
     {
         return MaterialsMap.at(InName);
     }
@@ -67,5 +67,5 @@ struct MaterialLibrary
     }
 
 private:
-    std::unordered_map<std::string, Material> MaterialsMap;
+    std::unordered_map<std::string, FMaterial> MaterialsMap;
 };
