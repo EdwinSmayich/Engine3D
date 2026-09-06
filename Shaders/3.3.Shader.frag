@@ -12,9 +12,6 @@ struct Light
     vec3 Position;
     vec3 Direction;
     vec3 Color;
-    
-    vec3 Diffuse;
-    vec3 Specular;
 
     // Attenuation
     float Constant;
@@ -84,12 +81,12 @@ vec3 CalculateDirLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewDi
     // Diffuse
     vec3 LightDir = normalize(-InLight.Direction);
     float Diff = max(dot(InNorm, LightDir), 0.0f);
-    vec3 Diffuse = InLight.Diffuse * InLight.Color * (Diff * texture(uMaterial.Diffuse, TexCoords).rgb);
+    vec3 Diffuse = InLight.Color * (Diff * texture(uMaterial.Diffuse, TexCoords).rgb);
 
     // Specular and Shininess
     vec3 ReflectDir = reflect(-LightDir, InNorm);
     float Spec = pow(max(dot(InViewDir, ReflectDir), 0.0f), uMaterial.Shininess);
-    vec3 Specular = InLight.Specular * InLight.Color * (Spec * texture(uMaterial.Specular, TexCoords).rgb);
+    vec3 Specular = InLight.Color * (Spec * texture(uMaterial.Specular, TexCoords).rgb);
 
     // Return final color
     return (Diffuse + Specular);
@@ -125,12 +122,12 @@ vec3 CalculateSpotLight(Light InLight, vec3 InNorm, vec3 InFragPos, vec3 InViewD
     // Diffuse
     vec3 LightDir = normalize(InLight.Position - InFragPos);
     float Diff = max(dot(InNorm, LightDir), 0.0f);
-    vec3 Diffuse = InLight.Diffuse * InLight.Color * (Diff * texture(uMaterial.Diffuse, TexCoords).rgb);
+    vec3 Diffuse = InLight.Color * (Diff * texture(uMaterial.Diffuse, TexCoords).rgb);
 
     // Specular and Shininess
     vec3 ReflectDir = reflect(-LightDir, InNorm);
     float Spec = pow(max(dot(InViewDir, ReflectDir), 0.0f), uMaterial.Shininess);
-    vec3 Specular = InLight.Specular * InLight.Color * (Spec * texture(uMaterial.Specular, TexCoords).rgb);
+    vec3 Specular = InLight.Color * (Spec * texture(uMaterial.Specular, TexCoords).rgb);
 
     // Attenuation
     float Distance = length(InLight.Position - InFragPos);

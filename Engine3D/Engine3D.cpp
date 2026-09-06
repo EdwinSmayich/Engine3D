@@ -75,10 +75,6 @@ int main()
 
     glEnable(GL_DEPTH_TEST);
 
-    // Create shader program
-    FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
-    FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
-
     // clang-format off
     std::vector<FVertex> Vertices = 
     { 
@@ -152,7 +148,7 @@ int main()
     };
     
     std::vector<FTexture> Textures = {
-        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),          ETextureType::ETT_Diffuse },
+        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),          ETextureType::ETT_Diffuse  },
         {Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png"), ETextureType::ETT_Specular },
         {Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg"),              ETextureType::ETT_Emission }
     };
@@ -163,6 +159,10 @@ int main()
     // so nothing has to be cleaned up by hand
     FMesh ContainerMesh(Vertices, Indices, Textures);
     FMesh LightCubeMesh(Vertices, Indices, {});
+
+    // Create shader program
+    FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
+    FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
@@ -270,8 +270,6 @@ int main()
             CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
             CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
             CubeShader.SetVec3(Base + ".Color", glm::vec3(Light.LightData.Color));
-            CubeShader.SetVec3(Base + ".Diffuse", glm::vec3(Light.LightData.Diffuse));
-            CubeShader.SetVec3(Base + ".Specular", glm::vec3(Light.LightData.Specular));
             CubeShader.SetFloat(Base + ".Constant", Light.LightData.Constant);
             CubeShader.SetFloat(Base + ".Linear", Light.LightData.Linear);
             CubeShader.SetFloat(Base + ".Quadratic", Light.LightData.Quadratic);
