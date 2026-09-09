@@ -20,6 +20,7 @@
 #include "glm/gtx/matrix_decompose.hpp"
 
 #include "Renderer/Mesh.h"
+#include "Renderer/Model.h"
 
 int main()
 {
@@ -164,6 +165,8 @@ int main()
     FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
     FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
+    FModel BackpackModel(MODEL_DIR "/Backpack/backpack.obj");
+
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
 
@@ -224,7 +227,7 @@ int main()
                 continue;
             }
 
-            USceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
+            FSceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
             bool bSelected = (i == Ctx->SelectedObject);
 
             GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger
@@ -265,7 +268,7 @@ int main()
                 continue;
             }
 
-            USceneObject& Light = Ctx->SceneObjects[i];
+            FSceneObject& Light = Ctx->SceneObjects[i];
             std::string Base = "uLights[" + std::to_string(LightIndex) + "]";
             CubeShader.SetVec3(Base + ".Position", glm::vec3(Light.Transform.Position));
             CubeShader.SetVec3(Base + ".Direction", glm::vec3(Light.LightData.Direction));
@@ -283,7 +286,7 @@ int main()
         CubeShader.SetFloat("uAmbientStrength", Ctx->Settings.AmbientStrength);
 
         // Render cubes
-        for (USceneObject& Obj : Ctx->SceneObjects)
+        for (FSceneObject& Obj : Ctx->SceneObjects)
         {
             if (Obj.ObjectType != EObjectType::EOT_Cube)
             {
@@ -303,6 +306,9 @@ int main()
 
             ContainerMesh.Draw(CubeShader);
         }
+
+        // Draw models
+        BackpackModel.Draw(CubeShader);
 
         // ImGuizmo render
         if (!Ctx->SceneObjects.empty())

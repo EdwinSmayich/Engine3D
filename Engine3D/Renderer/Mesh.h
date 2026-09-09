@@ -14,9 +14,9 @@ class FShader;
 // byte the interleaved float array that OpenGL expects - no conversion needed.
 struct FVertex
 {
-    glm::vec3 Position;
-    glm::vec3 Normal;
-    glm::vec2 TexCoords;
+    glm::vec3 Position = glm::vec3(0.0f);
+    glm::vec3 Normal = glm::vec3(0.0f);
+    glm::vec2 TexCoords = glm::vec2(0.0f);
 };
 
 enum class ETextureType : std::uint8_t

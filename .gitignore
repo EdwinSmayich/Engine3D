@@ -23,6 +23,7 @@ obj/
 # Assimp is cloned rather than vendored - it is far too large to track here.
 # See the README for the clone command.
 ThirdParty/assimp/
+Assets/Models/
 
 # OS
 Thumbs.db

@@ -50,7 +50,7 @@ struct FAppContext
 
     // Scene
     // clang-format off
-    std::vector<USceneObject> SceneObjects
+    std::vector<FSceneObject> SceneObjects
     {
         // Lights
         {EObjectType::EOT_Light, {glm::vec3(-5.0f, 0.0f, 0.0f)}, 0.4f, {},},

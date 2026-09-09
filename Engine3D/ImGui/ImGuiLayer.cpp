@@ -5,7 +5,7 @@
 
 namespace UIFunction
 {
-    void TransformObjectOnScene(FAppContext& InContext, USceneObject& InObj)
+    void TransformObjectOnScene(FAppContext& InContext, FSceneObject& InObj)
     {
         ImGui::Text("Gizmo:");
         if (ImGui::RadioButton("Move", InContext.GizmoOperation == EGizmoOperation::EGO_Translate))
@@ -136,7 +136,7 @@ namespace
             ImGui::EndChild();
 
             // Properties of the Selected item
-            USceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
+            FSceneObject& Selectable = InContext.SceneObjects[InContext.SelectedObject];
 
             UIFunction::TransformObjectOnScene(InContext, Selectable);
 

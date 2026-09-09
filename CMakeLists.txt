@@ -91,6 +91,8 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Renderer/Shader.cpp
         Engine3D/Renderer/Mesh.h
         Engine3D/Renderer/Mesh.cpp
+        Engine3D/Renderer/Model.h
+        Engine3D/Renderer/Model.cpp
         Textures/stb_image.h
         Textures/std_image.cpp
         Engine3D/Camera/Camera.h
@@ -127,3 +129,4 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT E
 target_compile_definitions(Engine3D PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(Engine3D PRIVATE SHADER_DIR="${CMAKE_SOURCE_DIR}/Shaders")
 target_compile_definitions(Engine3D PRIVATE TEXTURE_DIR="${CMAKE_SOURCE_DIR}/Textures/Images")
+target_compile_definitions(Engine3D PRIVATE MODEL_DIR="${CMAKE_SOURCE_DIR}/Assets/Models")
