@@ -69,11 +69,6 @@ struct FAppContext
     void ResetAppContextToDefaults();
 };
 
-namespace Texture
-{
-    GLuint LoadTexture(const char* InPath);
-} // namespace Texture
-
 namespace CallBack
 {
     const GLvoid* BufferOffset(size_t InBytes);

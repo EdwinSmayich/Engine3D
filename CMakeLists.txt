@@ -77,16 +77,30 @@ set(ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/assimp)
 
 # Vendored third-party code is not ours to fix - silence its warnings so our own stay visible
-foreach(DEP assimp zlibstatic)
+foreach (DEP assimp zlibstatic)
     if (TARGET ${DEP})
         target_compile_options(${DEP} PRIVATE -w)
-    endif()
-endforeach()
+    endif ()
+endforeach ()
 
 # ---------------------------------------------------------------------------
 # Engine executable
 # ---------------------------------------------------------------------------
 add_executable(Engine3D Engine3D/Engine3D.cpp
+        Engine3D/Camera/Camera.h
+        Engine3D/Camera/Camera.cpp
+        Engine3D/Core/Light.h
+        Engine3D/Core/AppContext.h
+        Engine3D/Core/AppContext.cpp
+        Engine3D/Core/Materials.h
+        Engine3D/Core/SceneObject.h
+        Engine3D/Core/DebugSettings.h
+        Engine3D/ImGui/ImGuiLayer.h
+        Engine3D/ImGui/ImGuiLayer.cpp
+        Engine3D/Math/Math.h
+        Engine3D/Math/Math.cpp
+        Engine3D/Math/Transform.h
+        Engine3D/Math/Transform.cpp
         Engine3D/Renderer/Shader.h
         Engine3D/Renderer/Shader.cpp
         Engine3D/Renderer/Mesh.h
@@ -95,20 +109,8 @@ add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Renderer/Model.cpp
         Textures/stb_image.h
         Textures/std_image.cpp
-        Engine3D/Camera/Camera.h
-        Engine3D/Camera/Camera.cpp
-        Engine3D/Core/DebugSettings.h
-        Engine3D/ImGui/ImGuiLayer.h
-        Engine3D/ImGui/ImGuiLayer.cpp
-        Engine3D/Core/Light.h
-        Engine3D/Core/AppContext.h
-        Engine3D/Core/AppContext.cpp
-        Engine3D/Core/Materials.h
-        Engine3D/Core/SceneObject.h
-        Engine3D/Math/Math.h
-        Engine3D/Math/Math.cpp
-        Engine3D/Math/Transform.h
-        Engine3D/Math/Transform.cpp)
+        Textures/Texture.h
+        Textures/Texture.cpp)
 
 target_link_libraries(Engine3D PRIVATE
         glfw

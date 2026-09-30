@@ -10,8 +10,6 @@
 #include "ImGuizmo.h"
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <assimp/Importer.hpp>
-#include <assimp/version.h>
 
 #include <iostream>
 #include "Renderer/Shader.h"
@@ -21,6 +19,7 @@
 
 #include "Renderer/Mesh.h"
 #include "Renderer/Model.h"
+#include "../Textures/Texture.h"
 
 int main()
 {
@@ -149,21 +148,20 @@ int main()
     };
     
     std::vector<FTexture> Textures = {
-        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),          ETextureType::ETT_Diffuse  },
-        {Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png"), ETextureType::ETT_Specular },
-        {Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg"),              ETextureType::ETT_Emission }
-    };
+        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),         ETextureType::ETT_Diffuse},
+        {Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png"),ETextureType::ETT_Specular},
+        {Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg"),             ETextureType::ETT_Emission}};
     // clang-format on
+
+    // Create shader program
+    FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
+    FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     // The same cube geometry, but only the containers carry a material.
     // Each Mesh owns its buffers and frees them in its destructor,
     // so nothing has to be cleaned up by hand
     FMesh ContainerMesh(Vertices, Indices, Textures);
     FMesh LightCubeMesh(Vertices, Indices, {});
-
-    // Create shader program
-    FShader CubeShader(SHADER_DIR "/3.3.Shader.vert", SHADER_DIR "/3.3.Shader.frag");
-    FShader LightingCubeShader(SHADER_DIR "/LightCube.vert", SHADER_DIR "/LightCube.frag");
 
     FModel BackpackModel(MODEL_DIR "/Backpack/backpack.obj");
 
@@ -304,7 +302,7 @@ int main()
             glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
             CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
 
-            ContainerMesh.Draw(CubeShader);
+            // ContainerMesh.Draw(CubeShader);
         }
 
         // Draw models
