@@ -24,7 +24,7 @@ void FModel::Draw(const FShader& InShader) const
 void FModel::LoadModel(const std::string& InPath)
 {
     Assimp::Importer Importer;
-    const aiScene* Scene = Importer.ReadFile(InPath, aiProcess_Triangulate | aiProcess_GenSmoothNormals);
+    const aiScene* Scene = Importer.ReadFile(InPath, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
 
     if (!Scene || (Scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) || !Scene->mRootNode)
     {

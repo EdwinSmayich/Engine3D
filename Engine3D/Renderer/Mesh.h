@@ -1,6 +1,5 @@
 #pragma once
 #include "glad/gl.h"
-
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -28,7 +27,7 @@ struct FTexture
 {
     GLuint Id = 0;
     ETextureType Type = ETextureType::ETT_None;
-    std::string Path = "";
+    std::string Path;
 };
 
 // A single chunk of geometry that owns its own VAO/VBO/EBO.

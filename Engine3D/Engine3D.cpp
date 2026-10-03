@@ -286,27 +286,39 @@ int main()
         // Render cubes
         for (FSceneObject& Obj : Ctx->SceneObjects)
         {
-            if (Obj.ObjectType != EObjectType::EOT_Cube)
+            if (Obj.ObjectType == EObjectType::EOT_Light)
             {
                 continue;
             }
-            // World/Model transformation
-            GLfloat AngularSpeed = glm::radians(45.0f) * DeltaTime;
-            glm::quat DeltaRotation = glm::angleAxis(AngularSpeed, glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
-            Obj.Transform.Rotation = glm::normalize(DeltaRotation * Obj.Transform.Rotation);
 
-            glm::mat4 Model = Obj.Transform.GetMatrix();
-            CubeShader.SetMat4("uModel", Model);
+            if (Obj.ObjectType == EObjectType::EOT_Cube)
+            {
+                // World/Model transformation
+                GLfloat AngularSpeed = glm::radians(45.0f) * DeltaTime;
+                glm::quat DeltaRotation = glm::angleAxis(AngularSpeed, glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)));
+                Obj.Transform.Rotation = glm::normalize(DeltaRotation * Obj.Transform.Rotation);
 
-            // Normal Matrix
-            glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
-            CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
+                glm::mat4 Model = Obj.Transform.GetMatrix();
+                CubeShader.SetMat4("uModel", Model);
 
-            // ContainerMesh.Draw(CubeShader);
+                // Normal Matrix
+                glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
+                CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
+
+                ContainerMesh.Draw(CubeShader);
+            }
+            else if (Obj.ObjectType == EObjectType::EOT_Backpack)
+            {
+                glm::mat4 Model = Obj.Transform.GetMatrix();
+                CubeShader.SetMat4("uModel", Model);
+
+                // Normal Matrix
+                glm::mat3 NormalMatrix = glm::mat3(glm::transpose(glm::inverse(Model)));
+                CubeShader.SetMat3("uNormalMatrix", NormalMatrix);
+
+                BackpackModel.Draw(CubeShader);
+            }
         }
-
-        // Draw models
-        BackpackModel.Draw(CubeShader);
 
         // ImGuizmo render
         if (!Ctx->SceneObjects.empty())

@@ -7,7 +7,8 @@
 enum class EObjectType : std::uint8_t
 {
     EOT_Light,
-    EOT_Cube
+    EOT_Cube,
+    EOT_Backpack
 };
 
 struct FSceneObject
