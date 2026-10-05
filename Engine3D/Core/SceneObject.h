@@ -8,7 +8,7 @@ enum class EObjectType : std::uint8_t
 {
     EOT_Light,
     EOT_Cube,
-    EOT_Backpack
+    EOT_Model
 };
 
 struct FSceneObject
@@ -17,4 +17,5 @@ struct FSceneObject
     FTransform Transform;
     GLfloat BoundingRadius = 0.4f;
     FLight LightData;
+    GLint ModelIndex = -1;
 };
