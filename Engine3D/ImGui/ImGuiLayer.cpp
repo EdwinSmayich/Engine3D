@@ -119,14 +119,20 @@ namespace
                 {
                     ImGui::TableNextColumn();
 
-                    const bool bSelected = (InContext.SelectedObject == i);
+                    const bool bSelected = (static_cast<int>(i) == InContext.SelectedObject);
 
-                    const bool bIsLight = (InContext.SceneObjects[i].ObjectType == EObjectType::EOT_Light);
-                    std::string Label = (bIsLight ? "Light_" : "Cube_") + std::to_string(i);
+                    std::string Prefix;
+                    switch (InContext.SceneObjects[i].ObjectType)
+                    {
+                        case EObjectType::EOT_Light: Prefix = "Light_"; break;
+                        case EObjectType::EOT_Cube:  Prefix = "Cube_";  break;
+                        case EObjectType::EOT_Model: Prefix = "Model_"; break;
+                    }
+                    std::string Label = Prefix + std::to_string(i);
 
                     if (ImGui::Selectable(Label.c_str(), bSelected, 0, ImVec2(80.0f, 0.0f)))
                     {
-                        InContext.SelectedObject = i;
+                        InContext.SelectedObject = static_cast<int>(i);
                     }
                 }
 

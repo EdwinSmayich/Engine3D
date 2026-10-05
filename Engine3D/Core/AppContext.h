@@ -4,6 +4,7 @@
 #include "Light.h"
 #include "Materials.h"
 #include "SceneObject.h"
+#include "../Renderer/Model.h"
 #include "../Camera/Camera.h"
 #include "GLFW/glfw3.h"
 
@@ -60,9 +61,13 @@ struct FAppContext
         {EObjectType::EOT_Cube, {glm::vec3(-5.0f,  0.0f,  -3.0f)}, 1.0f, {}},
         {EObjectType::EOT_Cube, {glm::vec3(6.0f, 2.0f, 1.0f)}, 1.0f, {}},
         {EObjectType::EOT_Cube, {glm::vec3(2.0f, 2.0f, -3.0f)}, 1.0f, {}},
-        {EObjectType::EOT_Model, {glm::vec3(-4.5f, -4.2f, -2.5f)}, 1.0f, {}}
+        {EObjectType::EOT_Model, {glm::vec3(-4.5f, -4.2f, -2.5f)}, 1.0f, {}, 0}
     };
     // clang-format on
+
+    // Loaded model files. FSceneObject::ModelIndex points into this.
+    // Filled after the GL context exists, never in the initialiser above.
+    std::vector<FModel> Models;
 
     int SelectedObject = 0;       // Which object we are editing right now
     bool bDraggingObject = false; // Status: "I'm draging it right now"

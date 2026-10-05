@@ -1,21 +1,23 @@
 #pragma once
-#include <cstdint>
 #include <string>
 #include <vector>
 
+#include "Mesh.h"
+
 // Assimp types appear only as pointers here, so forward declarations are enough
 // and no translation unit that includes this header has to see the library
-enum class ETextureType : std::uint8_t;
 struct aiScene;
 struct aiNode;
 struct aiMesh;
 struct aiMaterial;
-struct FTexture;
-class FMesh;
 class FShader;
 
 // A model file turned into geometry we own: its node tree is walked once at
 // construction and every aiMesh found becomes one of our Meshes.
+//
+// Nothing here declares a destructor or a copy, which leaves the compiler free
+// to generate the move operations. A vector of models depends on that: FMesh
+// cannot be copied, so relocating the vector has to move.
 class FModel
 {
 public:

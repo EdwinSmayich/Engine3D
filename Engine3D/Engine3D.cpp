@@ -147,10 +147,17 @@ int main()
         20,22,23
     };
     
+    // Fills every field, so the path is recorded here the same way the model
+    // loader records it rather than being left to the default
+    auto MakeTexture = [](const GLchar* InPath, ETextureType InType)
+    {
+        return FTexture{Texture::LoadTexture(InPath), InType, InPath};
+    };
+
     std::vector<FTexture> Textures = {
-        {Texture::LoadTexture(TEXTURE_DIR "/Container2.png"),         ETextureType::ETT_Diffuse},
-        {Texture::LoadTexture(TEXTURE_DIR "/Container2_Specular.png"),ETextureType::ETT_Specular},
-        {Texture::LoadTexture(TEXTURE_DIR "/Matrix.jpg"),             ETextureType::ETT_Emission}};
+        MakeTexture(TEXTURE_DIR "/Container2.png",          ETextureType::ETT_Diffuse),
+        MakeTexture(TEXTURE_DIR "/Container2_Specular.png", ETextureType::ETT_Specular),
+        MakeTexture(TEXTURE_DIR "/Matrix.jpg",              ETextureType::ETT_Emission)};
     // clang-format on
 
     // Create shader program
@@ -163,7 +170,9 @@ int main()
     FMesh ContainerMesh(Vertices, Indices, Textures);
     FMesh LightCubeMesh(Vertices, Indices, {});
 
-    FModel BackpackModel(MODEL_DIR "/Backpack/backpack.obj");
+    // Loaded here rather than in FAppContext, whose members are built before GLAD
+    // has resolved a single GL entry point
+    Context.Models.emplace_back(MODEL_DIR "/Backpack/backpack.obj");
 
     glfwSetInputMode(Window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     GLfloat LastFrame = 0.0f;
@@ -226,7 +235,7 @@ int main()
             }
 
             FSceneObject& Light = Ctx->SceneObjects[i]; // TODO: mb set conts here
-            bool bSelected = (i == Ctx->SelectedObject);
+            bool bSelected = (static_cast<int>(i) == Ctx->SelectedObject);
 
             GLfloat LampScale = bSelected ? 0.32f : 0.2f; // The selected one is noticeably larger
             LightingCubeShader.SetVec3("uLightColor", bSelected ? glm::vec3(1.0f) : Light.LightData.Color);
@@ -312,7 +321,10 @@ int main()
             }
             else if (Obj.ObjectType == EObjectType::EOT_Model)
             {
-                BackpackModel.Draw(CubeShader);
+                if (Obj.ModelIndex >= 0 && Obj.ModelIndex < static_cast<GLint>(Ctx->Models.size()))
+                {
+                    Ctx->Models[Obj.ModelIndex].Draw(CubeShader);
+                }
             }
         }
 
