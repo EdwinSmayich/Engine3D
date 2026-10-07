@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-
 #include "Mesh.h"
 
 // Assimp types appear only as pointers here, so forward declarations are enough

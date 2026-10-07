@@ -86,6 +86,7 @@ endforeach ()
 # ---------------------------------------------------------------------------
 # Engine executable
 # ---------------------------------------------------------------------------
+
 add_executable(Engine3D Engine3D/Engine3D.cpp
         Engine3D/Camera/Camera.h
         Engine3D/Camera/Camera.cpp
@@ -132,3 +133,6 @@ target_compile_definitions(Engine3D PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(Engine3D PRIVATE SHADER_DIR="${CMAKE_SOURCE_DIR}/Shaders")
 target_compile_definitions(Engine3D PRIVATE TEXTURE_DIR="${CMAKE_SOURCE_DIR}/Textures/Images")
 target_compile_definitions(Engine3D PRIVATE MODEL_DIR="${CMAKE_SOURCE_DIR}/Assets/Models")
+
+# Warnings for our own code only; the vendored dependencies above are silenced
+target_compile_options(Engine3D PRIVATE -Wall -Wextra -Wshorten-64-to-32)
